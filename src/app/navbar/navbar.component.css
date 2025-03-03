@@ -1,0 +1,24 @@
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Assure-toi qu'elle soit au-dessus des autres éléments */
+}
+
+body {
+  padding-top: 60px; /* Réduit le padding en fonction de la hauteur ajustée de la navbar */
+}
+
+header {
+  padding-top: 5px; /* Ajuste la hauteur de la navbar */
+  padding-bottom: 5px; /* Réduit le padding en bas */
+}
+
+header img {
+  height: 40px; /* Réduit la taille du logo */
+}
+
+header span {
+  font-size: 14px; /* Taille de texte plus petite */
+}

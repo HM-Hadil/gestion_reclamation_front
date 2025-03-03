@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { OnInit } from '@angular/core';
-import { initFlowbite } from 'flowbite';
+
 
 @Component({
   selector: 'app-root',
@@ -11,6 +11,7 @@ export class AppComponent implements OnInit {
   title = 'web-app';
 
   ngOnInit(): void {
-    initFlowbite();
+
   }
+  
 }

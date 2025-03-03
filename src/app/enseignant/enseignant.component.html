@@ -1,0 +1,270 @@
+<div class="min-h-screen bg-gray-100">
+    <!-- Navbar (fixe en haut) -->
+    <app-navbar class="fixed top-0 left-0 w-full z-50"></app-navbar>
+  
+    <div class="flex">
+      <!-- Sidebar -->
+      <aside class="w-64 bg-gray-200 shadow-lg h-screen p-5 fixed top-16 left-0 flex flex-col items-center" style="background-image: url('assets/p.jpg'); background-size: cover; background-position: center;">
+        <div class="text-center mt-4">
+          <img src="assets/image/user.jpg" alt="User Image" class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1">
+          <h2 class="text-xl font-semibold mt-3 text-gray-800">Enseignant(e) Helena</h2>
+          <button class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-gray-600 transition">Voir profil</button>
+        </div>
+        <nav class="mt-8 w-full">
+          <ul>
+            <li class="mb-2">
+              <button class="w-full flex items-center p-3 text-gray-700 hover:bg-gray-200 rounded-lg transition">
+                <span class="mr-3">📊</span> <span class="font-medium">Dashboard</span>
+              </button>
+            </li>
+            <li class="mb-2">
+              <button class="w-full flex items-center p-3 text-gray-700 hover:bg-gray-200 rounded-lg transition">
+                <span class="mr-3">⚙️</span> <span class="font-medium">Paramètres</span>
+              </button>
+            </li>
+          </ul>
+          <button class="bg-red-500 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition">Déconnexion</button>
+        </nav>
+        
+  
+       
+      </aside>
+    </div>
+  
+    <!-- Main Content -->
+    <main class="flex flex-col items-center p-6 mt-16 ml-64 w-full" style="background-image: url('assets/p3.jpg');">
+      <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-4/5 lg:w-3/5">
+        <!-- Conteneur recherche + tableau -->
+        <div class="bg-white shadow-md rounded-lg pt-4">
+          <div class="p-5 flex justify-between items-center">
+            <input type="text" placeholder="🔍 Rechercher une réclamation..." class="border p-3 rounded-lg w-2/3 outline-none focus:ring-2 focus:ring-white-200">
+            <button (click)="afficherFormulaire()" class="bg-red-500 text-white px-5 py-3 rounded-lg shadow-md hover:bg-white-700 transition font-semibold">+ Nouvelle Réclamation</button>
+          </div>
+  
+          <!-- Tableau des réclamations -->
+          <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-300 text-black text-left border">
+                    <th class="p-3 text-lg border">Réclamation</th>
+                    <th class="p-3 text-lg border text-center">Détails de la réclamation </th>
+                    <th class="p-3 text-lg border text-center">Statut</th>
+                </tr>
+            </thead>
+        
+            <tbody>
+                <tr *ngFor="let reclamation of reclamations" class="border-b hover:bg-gray-100 transition">
+                    <td class="p-3 text-gray-800 border">{{ reclamation.task }}</td>
+        
+                    <!-- Colonne "Consulter" avec une icône -->
+                    <td class="p-3 text-center border">
+                        <button class="text-gray-700 hover:text-black transition">
+                           Consulter 🔍
+                        </button>
+                    </td>
+        
+                    <!-- Colonne "Statut" avec icônes -->
+                    <td class="p-3 text-center border">
+                        <span *ngIf="reclamation.status === 'validée'" class="text-green-500 text-2xl">✅</span>
+                        <span *ngIf="reclamation.status === 'en attente'" class="text-orange-500 text-2xl">⏳</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        </div>
+  
+        <!-- Formulaire de nouvelle réclamation (masqué par défaut) -->
+        <div *ngIf="formVisible" class="modal p-8 bg-white rounded-2xl shadow-2xl max-w-3xl mx-auto mt-10 transition-all duration-300">
+  
+          <!-- Titre avec effet stylisé -->
+          <h2 class="text-4xl font-extrabold text-gray-800 mb-6 text-center relative">
+            <span class="relative z-10 bg-gradient-to-r from-blue-600 to-red-600 text-transparent bg-clip-text">Nouvelle Réclamation</span>
+            <span class="absolute left-1/2 -bottom-2 w-24 h-1 bg-red-600 transform -translate-x-1/2"></span>
+          </h2>
+        
+          <!-- Champ de sélection du lieu -->
+          <label class="text-lg font-semibold text-gray-700 mb-2">Lieu :</label>
+          <div class="flex space-x-4 mb-4">
+            <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600 transition">
+              <input type="radio" name="location" value="Labo" [(ngModel)]="selectedLocation" class="hidden">
+              <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center transition">
+                <span *ngIf="selectedLocation === 'Labo'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+              </span>
+              <span>Labo</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600 transition">
+              <input type="radio" name="location" value="Salle" [(ngModel)]="selectedLocation" class="hidden">
+              <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center transition">
+                <span *ngIf="selectedLocation === 'Salle'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+              </span>
+              <span>Salle</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600 transition">
+              <input type="radio" name="location" value="Bureau" [(ngModel)]="selectedLocation" class="hidden">
+              <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center transition">
+                <span *ngIf="selectedLocation === 'Bureau'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+              </span>
+              <span>Bureau</span>
+            </label>
+          </div>
+
+          <div *ngIf="selectedLocation" class="mb-4">
+            <label class="text-lg font-semibold text-gray-700 mb-2">Numéro ou Nom de {{ selectedLocation }} :</label>
+            <input type="text" [(ngModel)]="numeroLocal" #numeroLocalInput="ngModel" required
+              class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition"
+              placeholder="Saisir un nom ou numéro">
+            <p *ngIf="numeroLocalInput.invalid && numeroLocalInput.touched" class="text-red-500 text-sm mt-1">
+              Ce champ est obligatoire.
+            </p>
+          </div>
+
+          <div *ngIf="selectedLocation === 'Labo'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+            <label class="text-lg font-semibold text-gray-700 mb-2">Catégorie :</label>
+            <div class="flex space-x-6 mb-4">
+                <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600">
+                    <input type="radio" name="category" value="Liste des PC" [(ngModel)]="selectedCategory" class="hidden">
+                    <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center">
+                        <span *ngIf="selectedCategory === 'Liste des PC'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                    </span>
+                    <span>Liste des PC</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600">
+                    <input type="radio" name="category" value="Électrique" [(ngModel)]="selectedCategory" class="hidden">
+                    <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center">
+                        <span *ngIf="selectedCategory === 'Électrique'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                    </span>
+                    <span>Électrique</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer hover:text-blue-600">
+                    <input type="radio" name="category" value="Divers" [(ngModel)]="selectedCategory" class="hidden">
+                    <span class="w-5 h-5 border-2 border-gray-400 rounded-full flex justify-center items-center">
+                        <span *ngIf="selectedCategory === 'Divers'" class="w-3 h-3 bg-blue-600 rounded-full"></span>
+                    </span>
+                    <span>Divers</span>
+                </label>
+            </div>
+            <button *ngIf="selectedCategory" (click)="resetStep('category')" class="text-red-500 text-sm hover:underline mb-4">Annuler</button>
+        </div>
+
+        <div *ngIf="selectedCategory === 'Liste des PC'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+          <label class="text-lg font-semibold text-gray-700 mb-2">PC :</label>
+          <div *ngFor="let pc of pcList" class="flex items-center space-x-2">
+              <input type="radio" name="selectedPC" [value]="pc" [(ngModel)]="selectedPC" class="form-radio text-red-500"> 
+              <span class="text-gray-700">{{ pc }}</span>
+          </div>
+          <input type="text" [(ngModel)]="newPC" placeholder="Ajouter un PC" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 shadow-sm mt-4 mb-4">
+          <button (click)="addNewPC()" class="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 transition">Ajouter</button>
+          <button *ngIf="selectedPC" (click)="resetStep('pc')" class="text-red-500 text-sm hover:underline">Annuler</button>
+      </div>
+      
+
+      <div *ngIf="selectedPC" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+        <label class="text-lg font-semibold text-gray-700 mb-2 block">Type de problème :</label>
+        <div class="flex space-x-6 mb-4" >
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" name="problemType" value="Matériel" [(ngModel)]="selectedProblemType" class="form-radio text-red-500">
+                <span class="text-gray-700">Matériel</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="radio" name="problemType" value="Logiciel" [(ngModel)]="selectedProblemType" class="form-radio text-red-500">
+                <span class="text-gray-700">Logiciel</span>
+            </label>
+        </div>
+        <button *ngIf="selectedProblemType" (click)="resetStep('problemType')" class="text-red-500 text-sm hover:underline">Annuler</button>
+    </div>
+    
+
+    <div *ngIf="selectedProblemType === 'Matériel'"class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+      <label class="text-lg font-semibold text-gray-700 mb-2 block">Problème matériel :</label>
+      <div *ngFor="let problem of materielProblems" class="flex items-center space-x-2">
+          <input type="radio" name="selectedProblem" [value]="problem" [(ngModel)]="selectedProblem" class="form-radio text-red-500"> 
+          <span class="text-gray-700">{{ problem }}</span>
+      </div>
+      <button (click)="showAddProblemInput = true" class="text-blue-500 hover:underline">Ajouter un problème</button>
+      <button *ngIf="selectedProblem" (click)="resetStep('problem')" class="text-red-500 text-sm hover:underline">Annuler</button>
+  </div>
+  
+
+  <div *ngIf="selectedProblemType === 'Logiciel'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+    <label class="text-lg font-semibold text-gray-700 mb-2 block">Problème logiciel :</label>
+    <div *ngFor="let problem of logicielProblems" class="flex items-center space-x-2">
+        <input type="radio" name="selectedProblem" [value]="problem" [(ngModel)]="selectedProblem" class="form-radio text-red-500">
+        <span class="text-gray-700">{{ problem }}</span>
+    </div>
+    <button (click)="showAddProblemInput = true" class="text-blue-500 hover:underline">Ajouter un problème</button>
+    <button *ngIf="selectedProblem" (click)="resetStep('problem')" class="text-red-500 text-sm hover:underline">Annuler</button>
+</div>
+
+
+
+<div *ngIf="selectedLocation === 'Salle'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+  <label class="text-lg font-semibold text-gray-700 mb-2 block">Catégorie :</label>
+  <div class="flex space-x-6 mb-4">
+      <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="radio" name="category" value="Électrique" [(ngModel)]="selectedCategory" class="form-radio text-red-500">
+          <span class="text-gray-700">Électrique</span>
+      </label>
+      <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="radio" name="category" value="Divers" [(ngModel)]="selectedCategory" class="form-radio text-red-500">
+          <span class="text-gray-700">Divers</span>
+      </label>
+  </div>
+  <button *ngIf="selectedCategory" (click)="resetStep('category')" class="text-red-500 text-sm hover:underline">Annuler</button>
+</div>
+
+
+<div *ngIf="selectedCategory === 'Électrique'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+  <label class="text-lg font-semibold text-gray-700 mb-2 block">Problème électrique :</label>
+  <div *ngFor="let problem of electriqueProblems" class="flex items-center space-x-2">
+      <input type="radio" name="selectedProblem" [value]="problem" [(ngModel)]="selectedProblem" class="form-radio text-red-500">
+      <span class="text-gray-700">{{ problem }}</span>
+  </div>
+  <button (click)="showAddProblemInput = true" class="text-blue-500 hover:underline">Ajouter un problème</button>
+</div>
+
+
+
+<div *ngIf="selectedLocation === 'Bureau'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+  <label class="text-lg font-semibold text-gray-700 mb-2 block">Catégorie :</label>
+  <div class="flex space-x-6 mb-4">
+      <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="radio" name="category" value="Divers" [(ngModel)]="selectedCategory" class="form-radio text-red-500">
+          <span class="text-gray-700">Divers</span>
+      </label>
+  </div>
+</div>
+
+
+<div *ngIf="selectedCategory === 'Divers'" class="mt-6 p-4 bg-gray-100 rounded-lg shadow">
+  <label class="text-lg font-semibold text-gray-700 mb-2 block">Problème divers :</label>
+  <div *ngFor="let problem of diversProblems" class="flex items-center space-x-2">
+      <input type="radio" name="selectedProblem" [value]="problem" [(ngModel)]="selectedProblem" class="form-radio text-red-500">
+      <span class="text-gray-700">{{ problem }}</span>
+  </div>
+  <button (click)="showAddProblemInput = true" class="text-blue-500 hover:underline">Ajouter un problème</button>
+</div>
+            
+
+
+
+<div *ngIf="showAddProblemInput" class="p-4 bg-white rounded-lg shadow-md">
+  <input type="text" [(ngModel)]="newProblem" placeholder="Décrire un autre problème" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 shadow-sm mb-4">
+  <button (click)="addNewProblem()" class="bg-green-500 text-white py-2 px-6 rounded-lg hover:bg-green-600 transition">Ajouter</button>
+</div>
+
+
+
+            <div *ngIf="selectedProblem" class="flex justify-between">
+                <button (click)="annulerFormulaire()" class="bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition">Annuler</button>
+                <button class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"  >Soumettre</button>
+            </div>
+        </div>
+
+
+      </div>
+    </main>
+    <footer class="bg-gray-800 text-white text-center p-4 mt-auto">
+      &copy; 2025 ISIMG - Tous droits réservés.
+  </footer>
+  </div>
+  
