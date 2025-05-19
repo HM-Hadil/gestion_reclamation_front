@@ -11,11 +11,19 @@ import { LoginComponent } from './login/login.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { FooterComponent } from './footer/footer.component';
 import { RegisterComponent } from './register/register.component';
-import { EnseignantComponent } from './enseignant/enseignant.component';
 import { ForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { NewPasswordComponent } from './new-password/new-password.component';
 import { DashbordTechComponent } from './dashbord-tech/dashbord-tech.component';
 import { ResponsableComponent } from './responsable/responsable.component';
+import { ProfilComponent } from './profil/profil.component';
+import { CreateReclamationComponent } from './dashboard-enseignant/create-reclamation/create-reclamation.component';
+import { MyReclamationsComponent } from './dashboard-enseignant/my-reclamations/my-reclamations.component';
+import { FicheTechniqueComponent } from './dashboard-enseignant/fiche-technique/fiche-technique.component';
+import { RouterOutlet } from '@angular/router';
+import { EnseignantComponent } from './dashboard-enseignant/enseignant/enseignant.component';
+import { ListReclamationsAdminComponent } from './dashbord-tech/list-reclamations-admin/list-reclamations-admin.component';
+import { CreateEquipementComponent } from './dashbord-tech/create-equipement/create-equipement.component';
+import { MyInterventionsComponent } from './dashboard-enseignant/my-interventions/my-interventions.component';
 
 
 
@@ -33,6 +41,13 @@ import { ResponsableComponent } from './responsable/responsable.component';
     NewPasswordComponent,
     DashbordTechComponent,
     ResponsableComponent,
+    ProfilComponent,
+    CreateReclamationComponent,
+    MyReclamationsComponent,
+    FicheTechniqueComponent,
+    ListReclamationsAdminComponent,
+    CreateEquipementComponent,
+    MyInterventionsComponent,
     
  
   ],
@@ -44,6 +59,7 @@ import { ResponsableComponent } from './responsable/responsable.component';
     ReactiveFormsModule,
     FormsModule,
     NgxDropzoneModule,
+    RouterOutlet
   
    
   ],

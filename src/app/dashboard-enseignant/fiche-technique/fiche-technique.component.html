@@ -1,0 +1,177 @@
+
+  <!-- src/app/laboratoires/laboratoires.component.html -->
+<!-- src/app/enseignant/enseignant.component.html -->
+
+<!-- Section Fiches Techniques Labos -->
+<div   
+    class="bg-white bg-opacity-80 rounded-lg shadow-sm p-1 h-auto max-h-[400px] overflow-auto ">
+
+  <!-- En-tête simplifié -->
+  <div class="flex flex-col mb-2">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-gray-500 pb-2 uppercase text-center">Informations Techniques des Laboratoires</h2>
+        
+    <div class="relative w-full md:w-2/3">
+      <input type="text" placeholder="🔍 Rechercher un labo..." 
+            (input)="onSearch($event)"
+            class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 shadow-sm">
+    </div>
+  </div>
+    
+  <!-- Grille simplifiée -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let labo of filteredLabos" 
+          class="bg-white border border-gray-100 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all">
+      <!-- En-tête de carte simplifié -->
+      <div class="p-4 bg-blue-50 border-b">
+        <h3 class="font-medium text-gray-800">{{labo.nom}}</h3>
+        <p class="text-xs text-gray-500">{{labo.pcs?.length || 0}} postes • {{labo.modele_postes}}</p>
+      </div>
+      
+      <!-- Contenu essentiel seulement -->
+      <div class="p-4 space-y-2 text-sm">
+        <p><span class="font-medium">CPU:</span> {{labo.processeur}}</p>
+        <p><span class="font-medium">RAM:</span> {{labo.memoire_ram}}</p>
+        <p><span class="font-medium">Stockage:</span> {{labo.stockage}}</p>
+        
+        <button (click)="openLaboDetails(labo)"
+                class="mt-3 w-full text-sm bg-white border border-gray-200 text-blue-600 py-1 px-3 rounded hover:bg-gray-50">
+          Voir détails
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<!-- Modal Détails Labo -->
+<div *ngIf="selectedLabo" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+    <!-- En-tête modal -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5 flex justify-between items-center">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        <h3 class="text-xl font-semibold text-white">{{selectedLabo.nom}} - Détails techniques</h3>
+      </div>
+      <button (click)="closeLaboDetails()" class="text-white hover:text-blue-100 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Contenu scrollable -->
+    <div class="p-6 overflow-y-auto flex-grow space-y-6">
+      <!-- Section Configuration -->
+      <div class="bg-blue-50/50 p-5 rounded-lg border border-blue-100">
+        <h4 class="font-medium text-blue-800 mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Configuration technique
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-start">
+            <div class="bg-white p-3 rounded-lg shadow-sm w-full border border-gray-200">
+              <div class="text-xs font-medium text-gray-500 mb-1">Modèle</div>
+              <div class="font-medium">{{selectedLabo.modele_postes || '-'}}</div>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div class="bg-white p-3 rounded-lg shadow-sm w-full border border-gray-200">
+              <div class="text-xs font-medium text-gray-500 mb-1">Processeur</div>
+              <div class="font-medium">{{selectedLabo.processeur || '-'}}</div>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div class="bg-white p-3 rounded-lg shadow-sm w-full border border-gray-200">
+              <div class="text-xs font-medium text-gray-500 mb-1">Mémoire RAM</div>
+              <div class="font-medium">{{selectedLabo.memoire_ram || '-'}}</div>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <div class="bg-white p-3 rounded-lg shadow-sm w-full border border-gray-200">
+              <div class="text-xs font-medium text-gray-500 mb-1">Stockage</div>
+              <div class="font-medium">{{selectedLabo.stockage || '-'}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Section Postes -->
+      <div>
+        <h4 class="font-medium text-blue-800 mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+          </svg>
+          Postes ({{selectedLabo.pcs?.length || 0}})
+        </h4>
+        
+        <!-- Message de chargement pour les PCs -->
+        <div *ngIf="!selectedLabo.pcs || selectedLabo.pcs.length === 0" class="text-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700 mx-auto mb-4"></div>
+          <p class="text-gray-500">Chargement des postes...</p>
+        </div>
+        
+        <!-- Tableau des postes -->
+        <div *ngIf="selectedLabo.pcs && selectedLabo.pcs.length > 0" class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-blue-600">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Poste</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">S/N</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Écran</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Logiciels</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let pc of selectedLabo.pcs" class="hover:bg-blue-50/50 transition">
+                <td class="px-4 py-3 whitespace-nowrap font-medium">{{pc.poste}}</td>
+                <td class="px-4 py-3 whitespace-nowrap font-mono text-gray-500 text-sm">{{pc.sn_inventaire || '-'}}</td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm">{{pc.ecran || '-'}}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-2">
+                    <!-- Afficher les logiciels si c'est un tableau -->
+                    <ng-container *ngIf="pc.logiciels_installes && pc.logiciels_installes.includes(',')">
+                      <span *ngFor="let logiciel of pc.logiciels_installes.split(',')" 
+                            class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full">
+                        {{logiciel.trim()}}
+                      </span>
+                    </ng-container>
+                    <!-- Afficher tout comme un seul élément si c'est une chaîne simple -->
+                    <ng-container *ngIf="pc.logiciels_installes && !pc.logiciels_installes.includes(',')">
+                      <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-1 rounded-full">
+                        {{pc.logiciels_installes}}
+                      </span>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pied de modal -->
+    <div class="bg-gray-50 px-6 py-4 border-t flex justify-end">
+      <button (click)="closeLaboDetails()" 
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition flex items-center">
+        Fermer
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Indicateur de chargement principal -->
+<div *ngIf="isLoading" class="flex justify-center items-center p-10">
+  <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+</div>
+
+<!-- Message d'erreur -->
+<div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-700 p-4 my-4 rounded-lg">
+  {{ errorMessage }}
+</div>

@@ -1,0 +1,350 @@
+
+
+    <!-- Section État de l'équipement -->
+    <div  class="bg-white bg-opacity-80 h-auto max-h-[400px] overflow-auto rounded-lg shadow-md p-4 ">
+      <!-- En-tête compact avec barre de recherche en dessous -->
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-gray-500 pb-2 uppercase text-center">
+          Gestion des équipements
+        </h2>
+      
+        <div class="relative w-full md:w-2/3 flex items-center gap-x-4">
+          <input type="text" placeholder="🔍 Rechercher un labo..." 
+                [(ngModel)]="searchLaboTerm"
+                class="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 shadow-sm">
+          
+          <button (click)="openAddLaboModal()" 
+                  class="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-grey-200 text-sm whitespace-nowrap">
+            + Ajouter Labo
+          </button>
+        </div>
+      </div>
+    
+      <!-- Grille compacte des équipements -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div *ngFor="let labo of filteredLabos" 
+            class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
+          <!-- En-tête de carte -->
+          <div class="p-3 bg-blue-50 border-b flex justify-between items-center">
+            <div>
+              <h3 class="font-medium text-sm">{{labo.nom}}</h3>
+              <p class="text-xs text-gray-500">{{labo.modele_postes}}</p>
+            </div>
+            <div class="flex gap-1">
+              <button (click)="editLabo(labo)" class="text-blue-500 hover:text-blue-700 text-xs p-1">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button (click)="confirmDeleteLabo(labo)" class="text-red-500 hover:text-red-700 text-xs p-1">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Détails compact -->
+          <div class="p-3 text-xs">
+            <div class="grid grid-cols-2 gap-1 mb-2">
+              <div>
+                <p class="text-gray-500">CPU:</p>
+                <p class="truncate">{{labo.processeur}}</p>
+              </div>
+              <div>
+                <p class="text-gray-500">RAM:</p>
+                <p>{{labo.memoire_ram}}</p>
+              </div>
+              <div>
+                <p class="text-gray-500">Stockage:</p>
+                <p>{{labo.stockage}}</p>
+              </div>
+            </div>
+            
+            <button (click)="openLaboDetails(labo)"
+                    class="w-full mt-1 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs py-1 px-2 rounded border border-gray-200 flex items-center justify-center">
+              <span>Détails</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  
+  <!-- Modale Détails Labo -->
+  <div *ngIf="selectedLaboratoire" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-200">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[85vh] overflow-hidden flex flex-col transform transition-all duration-200 scale-95 hover:scale-100">
+      <!-- En-tête -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-4 flex justify-between items-center">
+        <div class="flex items-center">
+          <h3 class="font-semibold text-white">{{selectedLaboratoire.nom}}</h3>
+        </div>
+        <button (click)="selectedLaboratoire = null" class="text-white hover:text-gray-200 transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Contenu -->
+      <div class="p-4 overflow-y-auto flex-grow">
+        <!-- Section Configuration -->
+        <div class="mb-6">
+          <h4 class="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200 flex items-center">
+            Configuration
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div *ngFor="let item of getLaboConfigItems(selectedLaboratoire)" class="bg-gray-50 p-3 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{{item.label}}</p>
+              <p class="text-sm font-medium text-gray-800 truncate">{{item.value}}</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Section Postes -->
+        <div>
+          <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200">
+            <h4 class="text-sm font-semibold text-gray-800 flex items-center">
+              Postes ({{selectedLaboPCs.length}})
+            </h4>
+            <button (click)="addNewPoste()" 
+                    class="text-xs bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 transition flex items-center">
+              Ajouter
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto border border-gray-200 rounded-lg">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr class="header-row">
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poste</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">S/N</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Écran</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logiciels</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let pc of selectedLaboPCs" class="hover:bg-gray-50 transition">
+                  <td class="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{{pc.poste}}</td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500 font-mono">{{pc.sn_inventaire || '-'}}</td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{pc.ecran || '-'}}</td>
+                  <td class="px-3 py-2">
+                    <div class="flex flex-wrap gap-1">
+                      <span class="bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">
+                        {{pc.logiciels_installes || 'Aucun'}}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="px-3 py-2 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex items-center space-x-1">
+                      <button (click)="editPoste(pc)" 
+                            class="text-blue-600 hover:text-blue-900 p-1">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button (click)="confirmDeletePoste(pc)" 
+                            class="text-red-600 hover:text-red-900 p-1">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pied de page -->
+      <div class="bg-gray-50 px-4 py-3 border-t flex justify-end">
+        <button (click)="selectedLaboratoire = null" 
+                class="text-sm bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale de confirmation de suppression de poste -->
+  <div *ngIf="showDeletePosteConfirm" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-100">
+      <h3 class="text-2xl font-bold mb-5 text-gray-800">Confirmer la suppression</h3>
+      <p class="mb-7 text-gray-600">Êtes-vous sûr de vouloir supprimer ce poste ? Cette action est irréversible.</p>
+      
+      <div class="flex justify-end gap-4">
+        <button (click)="showDeletePosteConfirm = false"
+                class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium">
+          Annuler
+        </button>
+        <button (click)="deletePoste()"
+                class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium shadow-red-sm">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale Ajout/Modification Labo -->
+  <div *ngIf="showLaboModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all duration-200 scale-95 hover:scale-100">
+      <!-- En-tête -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-5">
+        <h3 class="text-xl font-semibold text-white flex items-center">
+          {{isEditingLabo ? 'Modifier' : 'Ajouter'}} un laboratoire
+        </h3>
+      </div>
+      
+      <!-- Contenu du formulaire -->
+      <div class="p-6">
+        <form (ngSubmit)="saveLabo()" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Nom du laboratoire -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nom du laboratoire *</label>
+              <div class="relative">
+                <input type="text" [(ngModel)]="currentLaboratoire.nom" name="nom" required
+                      class="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+            
+            <!-- Modèle des postes -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Modèle des postes *</label>
+              <div class="relative">
+                <input type="text" [(ngModel)]="currentLaboratoire.modele_postes" name="modele_postes" required
+                      class="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+            
+            <!-- Processeur -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Processeur *</label>
+              <div class="relative">
+                <input type="text" [(ngModel)]="currentLaboratoire.processeur" name="processeur" required
+                      class="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+            
+            <!-- Mémoire RAM -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Mémoire RAM *</label>
+              <div class="relative">
+                <input type="text" [(ngModel)]="currentLaboratoire.memoire_ram" name="memoire_ram" required
+                      class="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+            
+            <!-- Stockage -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Stockage *</label>
+              <div class="relative">
+                <input type="text" [(ngModel)]="currentLaboratoire.stockage" name="stockage" required
+                      class="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ errorMessage }}</span>
+          </div>
+          
+          <!-- Boutons -->
+          <div class="pt-4 flex justify-end gap-3">
+            <button type="button" (click)="cancelLaboEdit()"
+                    class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition flex items-center">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center shadow-md hover:shadow-lg">
+              {{isEditingLabo ? 'Modifier' : 'Ajouter'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale Ajout/Modification Poste -->
+  <div *ngIf="showPosteModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-200">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-200 scale-95 hover:scale-100">
+      <!-- En-tête -->
+      <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
+        <h3 class="text-xl font-semibold text-white">
+          {{isEditingPoste ? 'Modifier' : 'Ajouter'}} un poste
+        </h3>
+      </div>
+      
+      <!-- Contenu du formulaire -->
+      <div class="p-6">
+        <form (ngSubmit)="savePoste()" class="space-y-5">
+          <!-- Numéro du poste -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro du poste *</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="currentPC.poste" name="poste" required
+                    class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+          </div>
+          
+          <!-- Numéro de série -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro de série *</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="currentPC.sn_inventaire" name="sn_inventaire" required
+                    class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+          </div>
+          
+          <!-- Écran -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Écran</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="currentPC.ecran" name="ecran"
+                    class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+          </div>
+          
+          <!-- Logiciels installés -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Logiciels (séparés par des virgules)</label>
+            <div class="relative">
+              <input type="text" [(ngModel)]="currentPC.logiciels_installes" name="logiciels_installes"
+                    class="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+          </div>
+          
+          <!-- Message d'erreur -->
+          <div *ngIf="errorMessage" class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ errorMessage }}</span>
+          </div>
+          
+          <!-- Boutons -->
+          <div class="pt-4 flex justify-end gap-3">
+            <button type="button" (click)="cancelPosteEdit()"
+                    class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition flex items-center">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center shadow-md hover:shadow-lg">
+              {{isEditingPoste ? 'Modifier' : 'Ajouter'}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale de confirmation de suppression laboratoire -->
+  <div *ngIf="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-100">
+      <h3 class="text-2xl font-bold mb-5 text-gray-800">Confirmer la suppression</h3>
+      <p class="mb-7 text-gray-600">Êtes-vous sûr de vouloir supprimer ce laboratoire ? Cette action est irréversible.</p>
+      
+      <div class="flex justify-end gap-4">
+        <button (click)="showDeleteConfirm = false"
+                class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium">
+          Annuler
+        </button>
+        <button (click)="deleteLabo()"
+                class="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium shadow-red-sm">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+

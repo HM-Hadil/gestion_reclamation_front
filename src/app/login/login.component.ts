@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -7,29 +9,35 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  constructor(private router: Router) {}
-  goToRegister() {
-    this.router.navigate(['/register']); // Redirige vers la page Register
-  }
+  loginForm: FormGroup;
+  errorMessage: string = '';
 
-navigateToRegister() {
-throw new Error('Method not implemented.');
-}
-  username: string = '';
-  password: string = '';
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required]
+    });
+  }
 
   onLogin() {
-    // Logique pour se connecter
-    if (this.username === 'user' && this.password === 'password') {
-      console.log('Connexion réussie');
+    if (this.loginForm.valid) {
+      this.authService.login(this.loginForm.value).subscribe(response => {
+        if (response.access) {
+          localStorage.setItem('token', response.access); // Sauvegarde du token d'accès
+          this.router.navigate(['/enseignant']);
+        } else {
+          this.errorMessage = "Erreur lors de la connexion.";
+        }
+      }, error => {
+        this.errorMessage = "Identifiants incorrects ou problème de connexion.";
+      });
     } else {
-      console.log('Identifiants incorrects');
+      this.errorMessage = "Veuillez remplir correctement le formulaire.";
     }
   }
-  goToForgotPassword() {
-    this.router.navigate(['/forgot-password']);
-  }
-
-
   
+
+  goToRegister() {
+    this.router.navigate(['/register']);
+  }
 }

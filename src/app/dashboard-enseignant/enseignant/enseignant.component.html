@@ -1,0 +1,132 @@
+<div class=" overflow-x-hidden min-h-screen bg-gray-100 bg-cover " style="background-image: url('assets/e1.jpg');">
+  <!-- Navbar (fixe en haut) -->
+
+  <div class="flex"   >
+
+    <button class="fixed top-24 z-50 bg-black/30 rounded-full p-2 backdrop-blur-sm border border-white/20 hover:bg-black/40 transition-all" 
+    [class.left-4]="!isSidebarVisible"
+    [class.left-64]="isSidebarVisible"
+    (click)="toggleSidebar()">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+        <path [attr.d]="isSidebarVisible ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'"/>
+    </svg>
+</button>
+ 
+
+  <!-- Sidebar -->
+  <aside 
+    class="w-64 bg-black bg-opacity-60 shadow-2xl h-screen p-5 fixed  left-0 flex flex-col items-center"  style="margin-top: -4rem;"
+    [class.hidden]="!isSidebarVisible"  >
+
+    <div class="text-center ">
+
+      <img [src]="profilePicture || 'assets/default-avatar.png'" 
+           alt="Image de l'utilisateur"
+           class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1 cursor-pointer object-cover" 
+           > 
+      
+      <h2 class="text-xl font-semibold mt-3 text-gray-800 th-black">
+          Enseignant(e): {{ user.firstName }} {{ user.lastName }}
+          </h2>
+      
+  </div>
+
+      <nav class=" w-full bg-white bg-opacity-80 shadow-sm rounded-lg p-3 transition-all duration-300 hover:bg-gray-100">
+
+        <ul class="space-y-2">
+          <!-- Bouton pour afficher les réclamations soumises par l'enseignant -->
+          <a
+  class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-blue-600 transition"
+  href="/profil">
+  Voir profil
+        </a>
+
+          <li>
+            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
+              <span class="mr-3 text-lg">📝</span>
+              <a href="enseignant/create-reclamation" class="font-medium text-sm hover:scale-110" >Créer  Réclamation </a>
+            </button>
+          </li>
+          <li>
+            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
+              <span class="mr-3 text-lg">📝</span>
+              <a href="enseignant/my-reclamations" class="font-medium text-sm hover:scale-110" >Mes Réclamations </a>
+            </button>
+          </li>
+            <li>
+            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
+              <span class="mr-3 text-lg">📝</span>
+              <a href="enseignant/my-reclamations" class="font-medium text-sm hover:scale-110" >Autres Interventions</a>
+            </button>
+          </li>
+          <!-- Bouton pour afficher les réclamations terminées de tous les enseignants -->
+          <li>
+            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
+              <span class="mr-3 text-lg">📑</span>
+              <span class="font-medium text-sm hover:scale-110" ><a href="enseignant/my-interventions">Mes Interventions</a></span>
+            </button>
+          </li>
+          
+          <!-- Nouveau bouton Fiches Techniques -->
+          <li>
+            <a href="enseignant/fiche-technique" class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
+              <span class="mr-3 text-lg">🖥️</span>
+              <span class="font-medium text-sm hover:scale-110" >Fiches Techniques Labos</span>
+            </a>
+          </li>
+
+
+
+
+
+        </ul>
+        <button (click)="logout()"
+class="bg-red-400 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition-all duration-150"
+    >
+       Déconnexion
+      </button>
+
+      </nav>
+    </aside>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex flex-col items-center p-6 mt-8  w-full"  >
+  
+  
+    <div class="bg-gray-900 bg-opacity-50 shadow-lg rounded-lg p-6 w-11/12 md:w-3/4 lg:w-1/2 custom-margin">    
+
+
+
+ <router-outlet></router-outlet>
+
+
+</div>
+
+
+<app-footer></app-footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--*********************************************************************************************************************************************************-->
+
+
+
+

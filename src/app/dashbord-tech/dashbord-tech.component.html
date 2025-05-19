@@ -1,101 +1,63 @@
-div class="min-h-screen bg-gray-100">
-    <!-- Navbar (fixe en haut) -->
-    <app-navbar class="fixed top-0 left-0 w-full z-50"></app-navbar>
-  
-    <div class="flex">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-gray-200 shadow-lg h-screen p-5 fixed top-16 left-0" style="background-image: url('assets/p.jpg'); background-size: cover; background-position: center;">
-        <div class="text-center">
-          <img src="assets/user.jpg" alt="User Image" class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1">
-          <h2 class="text-xl font-semibold mt-3 text-gray-800">Technicien Mounir</h2>
-          <button class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-gray-600 transition">
+
+<div class="overflow-x-hidden min-h-screen bg-gray-100 bg-cover" style="background-image: url('assets/tech.jpg');">
+  <!-- Navbar (fixe en haut) -->
+  <app-navbar class="fixed top-0 left-0 w-full z-50"></app-navbar>
+
+  <div class="flex">
+    <button class="fixed top-24 z-50 bg-black/30 rounded-full p-2 backdrop-blur-sm border border-white/20 hover:bg-black/40 transition-all"
+      [class.left-4]="!isSidebarVisible"
+      [class.left-64]="isSidebarVisible"
+      (click)="toggleSidebar()">
+      <i class="fas fa-bars text-white"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <aside class="w-64 bg-black bg-opacity-60 shadow-2xl h-screen p-5 fixed top-16 left-0 flex flex-col items-center" 
+      [class.hidden]="!isSidebarVisible">
+      <div class="text-center mt-4">
+        <img src="assets/user.jpg" alt="User Image" class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1">
+        <h2 class="text-xl font-semibold mt-3 text-gray-800 th-black">Technicien anwar</h2>
+      </div>
+          
+      <nav class="mt-8 w-full bg-white bg-opacity-80 shadow-sm rounded-lg p-3 transition-all duration-300 hover:bg-gray-100">
+        <ul class="space-y-2">
+          <!-- Bouton pour voir le profil -->
+          <button 
+            class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-blue-600 transition"
+            [routerLink]="['/profil']">
             Voir profil
           </button>
-        </div>
-        <nav class="mt-8">
-          <ul>
-            <li class="mb-4">
-              <button class="flex items-center p-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg w-full transition">
-                <span class="mr-3">📊</span>
-                <span class="font-medium">Dashboard</span>
-              </button>
-            </li>
-            <li class="mb-4">
-              <button class="flex items-center p-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg w-full transition">
-                <span class="mr-3">⚙️</span>
-                <span class="font-medium">Paramètres</span>
-              </button>
-            </li>
-            <li class="mb-4">
-              <button class="flex items-center p-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg w-full transition">
-                <span class="mr-3">⋮</span>
-                <span class="font-medium">More options</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-  
-        <button class="bg-red-500 text-white w-full py-2 rounded-md mt-8 hover:bg-red-600 transition">
+              
+          <!-- Bouton pour afficher les réclamations -->
+          <li>
+            <a href="technicien/list-reclamation-admin" class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110"
+               >
+              <span class="mr-3 text-lg">📑</span>
+              <span class="font-medium text-sm hover:scale-110">Réclamations de tous les enseignants</span>
+          </a>
+          </li>
+
+          <!-- Bouton État de l'équipement -->
+          <li>
+            <a href="technicien/create-equipment" class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110"
+                >
+              <span class="mr-3 text-lg">🖥️</span>
+              <span class="font-medium text-sm hover:scale-110">État de l'équipement</span>
+          </a>
+          </li>
+        </ul>
+            
+        <button 
+          class="bg-red-400 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition-all duration-150"
+          [routerLink]="['/login']">
           Déconnexion
         </button>
-      </aside>
-    </div>
-  
-    <main class="flex justify-center items-start p-6 mt-16" style="background-image: url('assets/p3.jpg');">
-        <div class="bg-white shadow-lg rounded-lg p-6 w-full md:w-4/5 lg:w-3/5">
-        <div class="bg-white shadow-md rounded-lg pt-4">
-          <div class="p-5 flex justify-between items-center">
-            <!-- Barre de recherche -->
-            <input type="text" placeholder="🔍 Rechercher une tâche..."
-              class="border p-3 rounded-lg w-2/3 outline-none focus:ring-2 focus:ring-green-500">
-            
-            <!-- Section de filtrage avec titre et options -->
-            <div class="relative ml-4">
-              <div class="mt-2">
-                <button (click)="toggleFilterDropdown()" class="bg-gray-200 text-gray-800 p-2 rounded-lg w-full flex items-center justify-between hover:bg-gray-300 transition">
-                  <span>Filtrer</span>
-                  <span>🔽</span>
-                </button>
-    
-                <!-- Liste déroulante de filtres -->
-                <div *ngIf="isFilterDropdownVisible" class="bg-white shadow-lg rounded-lg absolute top-full left-0 mt-2 w-full">
-                  <ul class="text-gray-700">
-                    <li class="p-2 hover:bg-gray-100 transition cursor-pointer">par Date</li>
-                    <li class="p-2 hover:bg-gray-100 transition cursor-pointer">par Gravité</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-    
-          <!-- Tableau des tâches -->
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="bg-red-600 text-white text-left">
-                <th class="p-3 text-lg">Task</th>
-                <th class="p-3 text-lg">Title</th>
-                <th class="p-3 text-lg">Priority</th>
-                <th class="p-3 text-lg">Date</th>
-                <th class="p-3 text-lg">Type</th>
-                <th class="p-3 text-lg">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let task of tasks" class="border-b hover:bg-gray-100 transition">
-                <td class="p-3 text-gray-800">{{task.id}}</td>
-                <td class="p-3 text-gray-800">{{task.title}}</td>
-                <td class="p-3 text-gray-800">{{task.priority}}</td>
-                <td class="p-3">{{task.date}}</td>
-                <td class="p-3">{{task.type}}</td>
-                <td class="p-3">
-                  <select class="border p-1 rounded-md w-full text-gray-700">
-                    <option *ngFor="let status of statuses">{{status}}</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </nav>
+    </aside>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex flex-col items-center p-6 mt-8 ml-72">
+    <router-outlet></router-outlet>
     </main>
 

@@ -1,0 +1,166 @@
+<!-- Main container for the reclamations component -->
+<div class="container mx-auto px-4 py-6">
+  <!-- Navigation Tabs -->
+  <div class="mb-6 border-b border-gray-200">
+ 
+  </div>
+
+
+  <!-- Mes Réclamations Section -->
+  <div >
+    <!-- List View for Reclamations -->
+    <div *ngIf="viewMode === 'list'" class="reclamations-list-container">
+      <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold text-gray-800">Mes Réclamations</h2>
+          <button (click)="newreclamation()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Nouvelle Réclamation
+          </button>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingReclamations" class="text-center py-10">
+          <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="mt-2 text-gray-600">Chargement de vos réclamations...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="reclamationsError && !isLoadingReclamations" class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded shadow text-center">
+          <strong>Erreur :</strong> {{ reclamationsError }}
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoadingReclamations && !reclamationsError && myReclamations.length === 0" class="text-center py-10 bg-gray-50 rounded-lg border border-gray-200">
+          <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900">Aucune réclamation</h3>
+          <p class="mt-1 text-gray-500">Vous n'avez pas encore créé de réclamation.</p>
+          <div class="mt-6">
+              <button (click)="switchToFormView()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                  Créer une réclamation
+              </button>
+          </div>
+      </div>
+
+      <!-- Reclamations List -->
+      <div *ngIf="!isLoadingReclamations && !reclamationsError && myReclamations.length > 0" class="space-y-4">
+          <div *ngFor="let reclamation of myReclamations; trackBy: trackReclamationById" 
+               class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
+               (click)="viewReclamationDetails(reclamation.id)">
+              <div class="flex flex-col md:flex-row justify-between">
+                  <div class="flex-1">
+                      <div class="flex items-center space-x-2 mb-2">
+                          <span class="font-medium text-gray-900">#{{ reclamation.id }}</span>
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium" 
+                                [ngClass]="getStatusClass(reclamation.status)">
+                              {{ getStatusDisplayName(reclamation.status) }}
+                          </span>
+                      </div>
+                      <p class="text-gray-700">{{ getReclamationSummary(reclamation) }}</p>
+                      <p class="text-sm text-gray-500 mt-1">{{ reclamation.date_creation | date:'medium' }}</p>
+                  </div>
+                  <div class="mt-2 md:mt-0 flex items-center">
+                      <button class="text-blue-600 hover:text-blue-800">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- Form View (placeholder - you'll need to implement this) -->
+    <div *ngIf="viewMode === 'form'">
+      <button (click)="switchToListView()" class="mb-4 flex items-center text-blue-600 hover:text-blue-800 transition">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Retour à la liste
+      </button>
+      <h2 class="text-2xl font-semibold mb-4 text-gray-800">Nouvelle Réclamation</h2>
+      <!-- Your form would go here -->
+      <p class="text-gray-600">Formulaire de création de réclamation à implémenter</p>
+    </div>
+
+    <!-- Details View (from paste-2.txt) -->
+    <div *ngIf="viewMode === 'details'">
+      <button (click)="closeDetails()" class="mb-4 flex items-center text-blue-600 hover:text-blue-800 transition">
+          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          Retour à la liste
+      </button>
+
+      <h2 class="text-2xl font-semibold mb-4 text-gray-800">Détails de la Réclamation #{{ selectedReclamationDetails?.id }}</h2>
+
+      <div *ngIf="isLoadingDetails" class="text-center py-10">
+        <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-2 text-gray-600">Chargement des détails...</p>
+      </div>
+
+      <div *ngIf="detailsError && !isLoadingDetails" class="my-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded shadow text-center">
+        <strong>Erreur :</strong> {{ detailsError }}
+      </div>
+
+      <div *ngIf="selectedReclamationDetails && !isLoadingDetails && !detailsError" class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <div>
+                  <dt class="font-medium text-gray-500 text-sm">ID Réclamation</dt>
+                  <dd class="text-gray-900 text-lg">{{ selectedReclamationDetails.id }}</dd>
+              </div>
+              <div>
+                  <dt class="font-medium text-gray-500 text-sm">Date de Création</dt>
+                  <dd class="text-gray-900 text-lg">{{ selectedReclamationDetails.date_creation | date:'fullDate' }} à {{ selectedReclamationDetails.date_creation | date:'shortTime' }}</dd>
+              </div>
+              <div>
+                  <dt class="font-medium text-gray-500 text-sm">Statut</dt>
+                  <dd class="text-lg">
+                      <span class="px-2.5 py-1 rounded-full text-sm font-semibold" [ngClass]="getStatusClass(selectedReclamationDetails.status)">
+                          {{ getStatusDisplayName(selectedReclamationDetails.status) }}
+                      </span>
+                  </dd>
+              </div>
+              <div>
+                  <dt class="font-medium text-gray-500 text-sm">Lieu</dt>
+                  <dd class="text-gray-900 text-lg">{{ getLocationDisplayName(selectedReclamationDetails) }}</dd>
+              </div>
+              <div class="md:col-span-2"> 
+                  <dt class="font-medium text-gray-500 text-sm">Catégorie</dt>
+                  <dd class="text-gray-900 text-lg">{{ getCategoryDisplayName(selectedReclamationDetails.category) }}</dd>
+              </div>
+
+              <div class="md:col-span-2 mt-2 pt-4 border-t">
+                  <h3 class="text-md font-semibold text-gray-700 mb-2">Détails Spécifiques</h3>
+                  <div *ngIf="selectedReclamationDetails.pc_details as details">
+                      <p><strong>Type :</strong> {{ details.type_probleme === 'materiel' ? 'Matériel' : 'Logiciel' }}</p>
+                      <p><strong>Problème :</strong> {{ details.description_probleme || 'Non spécifié' }}</p>
+                      <p *ngIf="selectedReclamationDetails.equipement"><strong>PC ID :</strong> {{ selectedReclamationDetails.equipement }}</p> 
+                  </div>
+                  <div *ngIf="selectedReclamationDetails.electrique_details as details">
+                      <p><strong>Problème :</strong> {{ details.description_probleme || details.type_probleme || 'Non spécifié' }}</p>
+                  </div>
+                  <div *ngIf="selectedReclamationDetails.divers_details as details">
+                      <p><strong>Problème :</strong> {{ details.description_probleme || details.type_probleme || 'Non spécifié' }}</p>
+                  </div>
+                  <div *ngIf="!selectedReclamationDetails.pc_details && !selectedReclamationDetails.electrique_details && !selectedReclamationDetails.divers_details && selectedReclamationDetails.category">
+                      <p class="text-gray-600 italic">Aucun détail spécifique enregistré pour cette catégorie.</p>
+                  </div>
+              </div>
+
+              <div class="md:col-span-2 mt-2 pt-4 border-t">
+                  <dt class="font-medium text-gray-500 text-sm mb-1">Description Générale</dt>
+                  <dd class="text-gray-800 bg-gray-50 p-3 rounded border whitespace-pre-wrap">{{ selectedReclamationDetails.description_generale || 'Aucune description fournie.' }}</dd>
+              </div>
+          </dl>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,81 @@
+/* Zone de téléchargement de fichier - Version corrigée */
+.file-upload-wrapper {
+  margin: 1.5rem 0;
+  text-align: center;
+  position: relative; /* Ajouté */
+}
+
+.file-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 2px dashed #cbd5e0;
+  border-radius: 20px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 6px;
+  width: auto;
+  position: relative; /* Ajouté */
+  overflow: hidden; /* Ajouté */
+}
+
+/* Correction spécifique pour l'input file */
+.file-upload input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  left: 0; /* Ajouté */
+  top: 0; /* Ajouté */
+  font-size: 0; /* Empêche l'affichage du texte par défaut */
+}
+
+.file-upload:hover {
+  border-color: #2563eb;
+  background-color: #eef2ff;
+}
+
+.file-upload svg {
+  width: 18px;
+  height: 18px;
+  stroke: #4b5563;
+}
+
+.file-upload span {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.file-upload input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.file-upload-wrapper {
+  position: relative;
+}
+
+.file-upload input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.profile-preview img {
+  transition: all 0.3s ease;
+}
+
+.profile-preview img:hover {
+  transform: scale(1.05);
+}

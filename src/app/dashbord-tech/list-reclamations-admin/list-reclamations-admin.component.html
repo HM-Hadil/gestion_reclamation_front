@@ -1,0 +1,229 @@
+<div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700  rounded relative mb-4" role="alert">
+  <strong class="font-bold">Erreur!</strong>
+  <span class="block sm:inline">{{ errorMessage }}</span>
+</div>
+
+<div *ngIf="isLoading" class="flex justify-center items-center p-6">
+  <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  <p class="ml-3 text-gray-300">Chargement...</p>
+</div>
+
+<div *ngIf="currentSection === 'reclamations' && !isLoading" class="bg-gray-900 bg-opacity-50 shadow-lg max-h-[900px] overflow-auto rounded-lg p-6 " style="width: 50rem; margin-top: 6rem;">
+  <div class="bg-white shadow-md rounded-lg pt-4">
+    <div class="p-5 flex justify-between items-center">
+      <input type="text" placeholder="🔍 Rechercher par ID, description, lieu, catégorie..."
+             class="border p-3 rounded-lg w-2/3 outline-none focus:ring-2 focus:ring-blue-500"
+             [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()">
+      
+      <div class="relative ml-4">
+        <button (click)="toggleFilterDropdown()" 
+                class="bg-white text-gray-700 px-4 py-2 rounded-full w-full flex items-center justify-between shadow-sm border border-gray-300 hover:bg-gray-50 transition-all">
+          <span class="font-medium">Filtrer</span>
+          <svg class="w-4 h-4 ml-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+      
+        <div *ngIf="isFilterDropdownVisible" 
+             class="bg-white shadow-lg rounded-lg absolute top-full right-0 mt-2 w-48 border border-gray-200 overflow-hidden z-10">
+          <ul class="text-gray-700">
+            <li (click)="filterByDate()" class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer">Par Date (Plus récent)</li>
+            <li (click)="filterByLieu('labo')" class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer">Lieu: Labo</li>
+            <li (click)="filterByLieu('salle')" class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer">Lieu: Salle</li>
+            <li (click)="filterByLieu('bureau')" class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer">Lieu: Bureau</li>
+               </ul>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredReclamations.length > 0; else noReclamations">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gradient-to-r from-gray-500 to-gray-500 text-white text-left">
+            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b border-gray-600">Numéro</th>
+            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b border-gray-600">Titre / Desc. (Courte)</th>
+            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b border-gray-600 text-center">Statut</th>
+            <th class="px-6 py-4 text-sm font-semibold uppercase tracking-wider border-b border-gray-600 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let reclamation of filteredReclamations" class="border-b hover:bg-gray-100 transition">
+            <td class="p-3 text-gray-800">{{ reclamation.id }}</td>
+            <td class="p-3 text-gray-800">{{ getReclamationTitle(reclamation) }}</td>
+            <td class="p-3 text-gray-800 text-center">
+                <span [ngClass]="{
+                    'bg-yellow-200 text-yellow-800': reclamation.status === 'en_attente',
+                    'bg-blue-200 text-blue-800': reclamation.status === 'en_cours',
+                    'bg-green-200 text-green-800': reclamation.status === 'termine'
+                  }" class="px-2 py-1 text-xs font-semibold rounded-full">
+                  {{ reclamation.status | titlecase }}
+                </span>
+            </td>
+            <td class="p-3 flex items-center justify-center">
+              <button (click)="openDetails(reclamation)" class="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
+                Voir détails
+              </button>
+              <span *ngIf="reclamation.status === 'termine'" class="ml-2 text-green-600 text-lg" title="Résolue">✔️</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noReclamations>
+        <p class="p-5 text-center text-gray-500">Aucune réclamation à afficher.</p>
+    </ng-template>
+  </div>
+</div>
+
+
+<div *ngIf="selectedReclamation" class="fixed inset-0 bg-gray-900/75 flex justify-center items-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
+    <div class="mb-8">
+      <div class="flex justify-between items-center pb-4 mb-6 border-b border-gray-200">
+        <div class="flex items-center">
+          <div class="bg-blue-100 p-2 rounded-lg mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Détails de la réclamation</h2>
+        </div>
+        <span class="bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full shadow-sm">Réf. #{{ selectedReclamation.id }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+          <div class="flex items-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Titre / Sujet</p></div>
+          <p class="text-gray-800 font-medium pl-7">{{ getReclamationTitle(selectedReclamation) }}</p>
+        </div>
+        
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm"><div class="flex items-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Lieu</p></div><p class="text-gray-800 font-medium pl-7">{{ selectedReclamation.lieu | titlecase }} <span *ngIf="selectedReclamation.laboratoire">(Labo: {{selectedReclamation.laboratoire}})</span></p></div>
+        
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm"><div class="flex items-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Catégorie</p></div><p class="text-gray-800 font-medium pl-7">{{ selectedReclamation.category | titlecase }}</p></div>
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm"><div class="flex items-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Date de création</p></div><p class="text-gray-800 font-medium pl-7">{{ selectedReclamation.date_creation | date:'dd/MM/yyyy HH:mm' }}</p></div>
+        
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm md:col-span-2"><div class="flex items-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg><p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Description complète</p></div><p class="text-gray-800 pl-7 whitespace-pre-line">{{ getReclamationFullDescription(selectedReclamation) }}</p></div>
+      </div>
+
+      <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+        <button (click)="closeModal()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>Fermer
+        </button>
+        <button *ngIf="selectedReclamation.status !== 'termine' && !showInterventionForm" (click)="handleIntervention(selectedReclamation)" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center shadow-md hover:shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {{ selectedReclamation.status === 'en_attente' ? "Démarrer l'intervention" : "Continuer l'intervention" }}
+        </button>
+         <span *ngIf="selectedReclamation.status === 'termine'" class="px-5 py-2.5 bg-green-100 text-green-700 rounded-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            Intervention terminée
+        </span>
+      </div>
+    </div>
+
+    <!-- Section du formulaire d'intervention -->
+<div *ngIf="showInterventionForm" class="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-200">
+  <div class="flex items-center mb-6">
+    <div class="bg-green-100 p-2 rounded-full mr-3"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg></div>
+    <h2 class="text-xl font-bold text-gray-800">Rapport d'Intervention</h2>
+  </div>
+
+  <div class="space-y-4 text-gray-700 leading-relaxed">
+    <p class="bg-white p-4 rounded-lg">
+      Je soussigné, <strong><input type="text" [(ngModel)]="interventionFormData.intervenantNom" class="border-b-2 border-gray-300 focus:border-green-500 outline-none px-2 bg-transparent font-medium" placeholder="Votre nom" required></strong>,
+      atteste avoir effectué une intervention le <strong><input type="date" [(ngModel)]="interventionFormData.dateIntervention" class="border-b-2 border-gray-300 focus:border-green-500 outline-none px-2 bg-transparent font-medium" required></strong>
+      suite à la réclamation n° <strong>{{ selectedReclamation.id }}</strong> intitulée <strong>"{{ getReclamationTitle(selectedReclamation) }}"</strong>.
+      L'intervention s'est déroulée à <strong>{{ selectedReclamation.lieu | titlecase }}</strong>.
+    </p>
+
+     <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Action effectuée :</label>
+      <select [(ngModel)]="interventionFormData.actionEffectuee" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" required>
+        <option value="">Sélectionner une action</option>
+        <option value="reparation">Réparation</option>
+        <option value="diagnostique">Diagnostique</option>
+        <option value="remplacement">Remplacement</option>
+        <option value="autre">Autre</option>
+        </select>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Problème constaté (diagnostic) :</label>
+      <textarea rows="2" [(ngModel)]="interventionFormData.problemeConstate" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Description détaillée du problème" required></textarea>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Analyse de cause du problème :</label>
+      <textarea rows="2" [(ngModel)]="interventionFormData.verificationsEffectuees" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Analyse technique et origine du problème"></textarea>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Actions entreprises :</label>
+      <textarea rows="2" [(ngModel)]="interventionFormData.actionsCorrectives" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Actions correctives réalisées" required></textarea>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded-lg">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Pièces remplacées :</label>
+        <textarea rows="2" [(ngModel)]="interventionFormData.piecesRechange" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Liste des pièces remplacées (si applicable)"></textarea>
+      </div>
+      <div class="bg-white p-4 rounded-lg">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Date de clôture de l'intervention :</label>
+        <input type="date" [(ngModel)]="interventionFormData.dateCloture" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" required>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Résultats des tests post-intervention :</label>
+      <textarea rows="2" [(ngModel)]="interventionFormData.resultatsTests" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Résultats des vérifications et état final"></textarea>
+    </div>
+
+    <div class="bg-white p-4 rounded-lg">
+      <label class="block text-sm font-medium text-gray-600 mb-1">Recommandations (si nécessaire) :</label>
+      <textarea rows="2" [(ngModel)]="interventionFormData.recommandations" class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Préconisations pour éviter une récidive"></textarea>
+    </div>
+  </div>
+
+  <div class="mt-6 bg-white p-4 rounded-lg">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Mots-clés de l'intervention :</label>
+    <input type="text" [(ngModel)]="interventionFormData.motsCles" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Séparer par des virgules (ex: panne, écran, remplacement)">
+  </div>
+
+  <div class="mt-4 bg-white p-4 rounded-lg">
+    <label class="block text-sm font-medium text-gray-700 mb-2">Documents joints (Photos, etc.) :</label>
+    <div class="flex items-center justify-center w-full">
+      <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+          <p class="text-sm text-gray-500 mt-2" *ngIf="interventionFormData.fichiersJoints.length === 0">Glissez-déposez ou cliquez pour charger</p>
+          <p class="text-sm text-green-600 mt-2" *ngIf="interventionFormData.fichiersJoints.length > 0">{{ interventionFormData.fichiersJoints.length }} fichier(s) sélectionné(s)</p>
+          <p class="text-xs text-gray-400">(Formats acceptés: PDF, JPG, PNG)</p>
+        </div>
+              <input type="file" id="fichierJoint" class="form-control-file" (change)="onFileSelected($event)" name="fichierJoint" multiple>
+      </label>
+    </div>
+     <div *ngIf="interventionFormData.fichiersJoints.length > 0" class="mt-2 text-sm text-gray-600">
+        <ul><li *ngFor="let file of interventionFormData.fichiersJoints">{{ file.name }} ({{ (file.size / 1024).toFixed(2) }} KB)</li></ul>
+    </div>
+  </div>
+
+
+      <div class="mt-6 flex justify-end">
+        <button (click)="validateIntervention()" [disabled]="isLoading" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center shadow-md hover:shadow-lg disabled:opacity-50">
+          <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          Valider le rapport
+        </button>
+      </div>
+      <!-- Ajouter ce code dans votre template, juste avant/après la div de l'erreur -->
+<div *ngIf="successMessage" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+  <p class="font-bold">Succès</p>
+  <p>{{ successMessage }}</p>
+</div>
+
+<!-- Et assurez-vous d'avoir une div pour l'erreur quelque part -->
+<div *ngIf="errorMessage" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+  <p class="font-bold">Erreur</p>
+  <p>{{ errorMessage }}</p>
+</div>
+    </div>
+  </div>
+</div>

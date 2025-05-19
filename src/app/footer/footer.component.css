@@ -1,9 +1,8 @@
 footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    
+  margin-top: auto;
     width: 100%;
-    background-color: #E0E0E0; /* Couleur légèrement différente pour un effet plus doux */
+    
     color: white;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Ombre discrète */
   }
@@ -18,5 +17,10 @@ footer {
   
   footer p {
     margin: 4px 0; /* Réduit les marges autour des paragraphes */
+    font-size: 15px;
   }
-  
+  .bg-gray-300 {
+    background-color: #e2e8f0;
+   
+    text-align: center;
+  }

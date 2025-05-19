@@ -1,0 +1,120 @@
+/* Affinage des titres de tableau */
+th {
+    
+  color: white;
+  padding: 10px 12px; /* Réduit la taille du padding */
+  font-size: 14px; /* Réduit la taille de la police */
+  font-weight: 600; /* Un poids de police plus léger */
+}
+
+/* Raffinement des cellules de tableau */
+td {
+  padding: 10px 12px; /* Réduit le padding */
+  font-size: 14px; /* Réduit la taille de la police */
+}
+
+/* Boutons arrondis et plus doux */
+button {
+  border-radius: 50px; /* Augmente le rayon pour rendre les bords plus arrondis */
+  padding: 10px 20px; /* Augmente légèrement l'espacement pour un meilleur confort */
+  font-size: 14px; /* Taille de police plus petite pour un look plus épuré */
+  font-weight: 500; /* Moins lourd pour une lecture plus fluide */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Transition plus douce */
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px); /* Léger effet de levée sur hover */
+}
+
+button:active {
+  transform: translateY(1px); /* Effet de pression sur le bouton */
+}
+
+/* Amélioration de la présentation de la sidebar et du contenu */
+aside {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 20px;
+  font-family: 'Roboto', sans-serif;
+  margin-top: 18px;
+  padding-top: 3rem; /* Ajoute de l'espace pour la flèche */
+  margin-left: 0;
+  transition: transform 0.3s ease;
+}
+
+button[class*="fixed"] {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #d3d2d2;
+  margin-top: 10px;
+}
+
+nav a {
+  font-size: 15px; /* Taille plus petite pour un effet plus discret */
+  font-weight: 500; /* Poids léger */
+}
+
+input[type="text"] {
+  font-size: 14px;
+  padding: 12px;
+}
+
+select, input[type="date"] {
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 8px; /* Ajout d'un arrondi sur les champs de saisie */
+}
+main {
+  margin-left: 16rem; /* Ajuste la marge pour libérer plus d'espace */
+  padding: 20px; /* Réduit l’espace autour du contenu */
+  min-height: calc(100vh - 4rem); /* Ajuste la hauteur pour éviter un débordement */
+  display: flex;
+  justify-content: center; /* Centrer le contenu horizontalement */
+  background-size: cover; /* Couvre toute la zone */
+  background-position: center; /* Centre l’image */
+  background-repeat: no-repeat; /* Empêche la répétition */
+
+}
+.custom-margin {
+margin-left: -1rem; /* Déplace un peu la div vers la gauche */
+margin-top: 3rem; /* Déplace un peu vers le bas */
+}
+.hidden {
+display: none;
+}
+
+/* Réduire l'espacement dans le tableau et les éléments */
+table {
+  margin-top: 10px; /* Réduit l'espace au-dessus du tableau */
+  font-size: 13px; /* Réduit légèrement la taille de la police pour compresser le contenu */
+}
+
+input[type="text"], button {
+  padding: 10px 15px; /* Réduit le padding des champs de saisie et boutons */
+  font-size: 13px; /* Taille de police plus petite pour tout le contenu */
+}
+
+/* Réduire l'espacement entre les sections de la main */
+.bg-white {
+  margin-top: 16px; /* Espacement réduit entre les sections */
+  padding: 15px; /* Réduit l'espace intérieur pour compacter le contenu */
+}
+
+/* Optimiser les boutons */
+button {
+  padding: 8px 16px; /* Diminuer les dimensions du bouton pour une apparence plus compacte */
+  font-size: 14px; /* Réduit la taille de la police */
+}  
