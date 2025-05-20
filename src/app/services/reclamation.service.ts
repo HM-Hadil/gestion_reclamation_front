@@ -200,6 +200,22 @@ export class ReclamationService {
       params
     }).pipe(catchError(this.handleError));
   }
+   AllfilterdReclamations(
+    lieu?: string,
+    category?: 'pc' | 'electrique' | 'divers',
+    statut?: 'en_attente' | 'en_cours' | 'termine'
+  ): Observable<Reclamation[]> {
+    let params = new HttpParams();
+    if (lieu) params = params.set('lieu', lieu);
+    if (category) params = params.set('category', category);
+    if (statut) params = params.set('statut', statut);
+
+    // Assurez-vous que l'endpoint `/filter/` existe sur votre API
+    return this.http.get<Reclamation[]>(`${this.apiUrl}/reclamations/all_filtered/`, {
+      ...this.getHttpOptions(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
 
   /**
    * Récupère les statistiques générales sur les réclamations (pour l'utilisateur connecté ou globales selon l'API).

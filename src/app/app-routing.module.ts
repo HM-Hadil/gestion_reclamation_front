@@ -16,6 +16,10 @@ import { EnseignantComponent } from './dashboard-enseignant/enseignant/enseignan
 import { ListReclamationsAdminComponent } from './dashbord-tech/list-reclamations-admin/list-reclamations-admin.component';
 import { CreateEquipementComponent } from './dashbord-tech/create-equipement/create-equipement.component';
 import { MyInterventionsComponent } from './dashboard-enseignant/my-interventions/my-interventions.component';
+import { ListOthersInterventionsComponent } from './dashboard-enseignant/list-others-interventions/list-others-interventions.component';
+import { ResponasbleListInterventionsComponent } from './responsable/responasble-list-interventions/responasble-list-interventions.component';
+import { ResponasbleListReclamationsComponent } from './responsable/responasble-list-reclamations/responasble-list-reclamations.component';
+import { ResponasbleStatistiqueComponent } from './responsable/responasble-statistique/responasble-statistique.component';
 
 
 const routes: Routes = [
@@ -26,7 +30,6 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent }, // Vérifie qu'il n'y a pas d'erreur ici
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'reset-password/:token', component: NewPasswordComponent },
-  { path: 'responsable', component: ResponsableComponent },
   { path: 'profil', component: ProfilComponent },
 
 
@@ -35,6 +38,7 @@ const routes: Routes = [
 {path:'my-reclamations',component:MyReclamationsComponent},
 {path:'fiche-technique',component:FicheTechniqueComponent},
 { path: 'my-interventions', component: MyInterventionsComponent },
+{path:'other-interventions',component:ListOthersInterventionsComponent},
 ]},
 
     { path: 'technicien', component: DashbordTechComponent,
@@ -44,6 +48,16 @@ const routes: Routes = [
 
     ]
    },
+  { path: 'responsable', component: ResponsableComponent ,
+    children:[
+      {path:'list-interventions',component:ResponasbleListInterventionsComponent},
+      {path:'list-reclamations',component:ResponasbleListReclamationsComponent},
+      {path:'statistique',component:ResponasbleStatistiqueComponent}
+
+    ]
+  },
+
+
 
 
 ];

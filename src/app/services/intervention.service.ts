@@ -1,9 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Intervention } from '../models/Intervention';
-
+import { User } from '../models/User';
+// Interface for statistics response
+export interface StatsResponse {
+  total_interventions: number;
+  technician_distribution: { [key: string]: number }; // technician_id: count
+  status_distribution: { [key: string]: number }; // status_key: count
+  technicians_data: User[]; // Full user objects for technicians
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -88,4 +95,56 @@ export class InterventionService {
     getIntervention(interventionId: number): Observable<Intervention> {
         return this.http.get<Intervention>(`${this.apiUrl}/interventions/${interventionId}/`, { headers: this.getAuthHeaders() });
     }
+
+getOtherUsersInterventions(): Observable<Intervention[]> {
+  // Inclure les en-têtes d'authentification
+  return this.http.get<Intervention[]>(`${this.apiUrl}/interventions/others/`, 
+    { headers: this.getAuthHeaders() });
+}
+ getAllInterventions(): Observable<Intervention[]> {
+    return this.http.get<Intervention[]>(`${this.apiUrl}/interventions/all/`,
+            { headers: this.getAuthHeaders() }
+
+    ); // Or adjust if your URL for all is different (e.g., /interventions/all/)
+  }
+ private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'An unknown error occurred!';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side errors
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side errors
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      if (error.error && error.error.detail) {
+        errorMessage = `Error Code: ${error.status}\nDetail: ${error.error.detail}`;
+      } else if (error.error) {
+        errorMessage = `Error Code: ${error.status}\n${JSON.stringify(error.error)}`;
+      }
+    }
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage));
+  }
+
+    // Method to fetch all interventions
+  getInterventions(technicianId: number | null = null): Observable<Intervention[]> {
+    let params = new HttpParams();
+    if (technicianId) {
+      params = params.set('technicien', technicianId.toString());
+    }
+    return this.http.get<Intervention[]>(`${this.apiUrl}/interventions/all/`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // Method to fetch statistics
+  getInterventionStats(technicianId: number | null = null): Observable<StatsResponse> {
+    let params = new HttpParams();
+    if (technicianId) {
+      params = params.set('technician_id', technicianId.toString());
+    }
+    return this.http.get<StatsResponse>(`${this.apiUrl}/interventions/stats/`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
 }

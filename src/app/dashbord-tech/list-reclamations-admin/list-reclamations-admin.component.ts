@@ -55,7 +55,7 @@ export class ListReclamationsAdminComponent implements OnInit {
   loadAllReclamations(): void {
     this.isLoading = true;
     this.errorMessage = null;
-    this.reclamationService.filterReclamations().subscribe({
+    this.reclamationService.AllfilterdReclamations().subscribe({
       next: (data) => {
         this.reclamations = data;
         this.filteredReclamations = data;

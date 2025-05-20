@@ -24,6 +24,10 @@ import { EnseignantComponent } from './dashboard-enseignant/enseignant/enseignan
 import { ListReclamationsAdminComponent } from './dashbord-tech/list-reclamations-admin/list-reclamations-admin.component';
 import { CreateEquipementComponent } from './dashbord-tech/create-equipement/create-equipement.component';
 import { MyInterventionsComponent } from './dashboard-enseignant/my-interventions/my-interventions.component';
+import { ListOthersInterventionsComponent } from './dashboard-enseignant/list-others-interventions/list-others-interventions.component';
+import { ResponasbleListInterventionsComponent } from './responsable/responasble-list-interventions/responasble-list-interventions.component';
+import { ResponasbleListReclamationsComponent } from './responsable/responasble-list-reclamations/responasble-list-reclamations.component';
+import { ResponasbleStatistiqueComponent } from './responsable/responasble-statistique/responasble-statistique.component';
 
 
 
@@ -48,6 +52,10 @@ import { MyInterventionsComponent } from './dashboard-enseignant/my-intervention
     ListReclamationsAdminComponent,
     CreateEquipementComponent,
     MyInterventionsComponent,
+    ListOthersInterventionsComponent,
+    ResponasbleListInterventionsComponent,
+    ResponasbleListReclamationsComponent,
+    ResponasbleStatistiqueComponent,
     
  
   ],

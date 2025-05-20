@@ -1,0 +1,195 @@
+<div class="container mx-auto p-6" style="width: 100rem; margin-left: -30rem;">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Autres  Interventions</h1>
+
+  <!-- Messages d'erreur et de succès -->
+  <div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 rounded relative mb-4 p-3" role="alert">
+    <strong class="font-bold">Erreur!</strong>
+    <span class="block sm:inline ml-2">{{ errorMessage }}</span>
+  </div>
+  <div *ngIf="successMessage" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+    <p class="font-bold">Succès</p>
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div *ngIf="isLoading" class="flex justify-center items-center p-6">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <p class="ml-3 text-gray-600">Chargement d'autres interventions...</p>
+  </div>
+
+  <!-- Champ de recherche -->
+  <div class="mb-4 flex items-center">
+    <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()"
+           placeholder="Rechercher par mot-clé dans les descriptions ou mots-clés..."
+           class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+  </div>
+
+  <!-- Tableau des interventions -->
+  <div *ngIf="!isLoading && filteredInterventions.length > 0" class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            ID Intervention
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Date Début
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Date Fin
+          </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Statut Réclamation
+          </th>
+         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y">
+        <tr *ngFor="let intervention of filteredInterventions">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            {{ intervention.id }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ formatDate(intervention.date_debut) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ formatDate(intervention.date_fin) || getStatusDisplay(intervention.reclamation_details?.status) }}
+             <span *ngIf="intervention.reclamation_details?.status === 'termine'" class="ml-1 text-green-600 text-lg" title="Terminée">✔️</span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <span [ngClass]="{
+                  'bg-yellow-100 text-yellow-800': intervention.reclamation_details?.status === 'en_attente',
+                  'bg-blue-100 text-blue-800': intervention.reclamation_details?.status === 'en_cours',
+                  'bg-green-100 text-green-800': intervention.reclamation_details?.status === 'termine'
+                }" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                {{ getStatusDisplay(intervention.reclamation_details?.status) }}
+              </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button (click)="openDetails(intervention)"
+                    class="text-indigo-600 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 px-3 py-1 rounded-md transition-colors mr-2">
+              Voir Détails
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Messages si aucune intervention n'est trouvée -->
+  <div *ngIf="!isLoading && filteredInterventions.length === 0 && interventions.length > 0" class="text-center text-gray-500 p-6">
+    <p>Aucune intervention trouvée correspondant à votre recherche.</p>
+  </div>
+  <div *ngIf="!isLoading && interventions.length === 0" class="text-center text-gray-500 p-6">
+    <p>Aucune intervention trouvée pour votre compte.</p>
+  </div>
+</div>
+
+<!-- Modal de détails d'intervention -->
+<div *ngIf="showDetailsModal && selectedIntervention" class="fixed inset-0 bg-gray-900/75 flex justify-center items-center z-50 p-4">
+  <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="mb-8">
+      <div class="flex justify-between items-center pb-4 mb-6 border-b border-gray-200">
+        <div class="flex items-center">
+          <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">Détails de l'Intervention #{{ selectedIntervention.id }}</h2>
+        </div>
+        <span class="bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full shadow-sm">
+          Réclamation #{{ selectedIntervention.reclamation }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6 text-gray-700">
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Technicien :</p>
+          <p>{{ selectedIntervention.technicien_nom || 'N/A' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Date Début :</p>
+          <p>{{ formatDate(selectedIntervention.date_debut) }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Date Fin :</p>
+          <p>{{ formatDate(selectedIntervention.date_fin) || 'Non terminée' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Statut Réclamation :</p>
+          <p>
+            <span [ngClass]="{
+              'bg-yellow-100 text-yellow-800': selectedIntervention.reclamation_details?.status === 'en_attente',
+              'bg-blue-100 text-blue-800': selectedIntervention.reclamation_details?.status === 'en_cours',
+              'bg-green-100 text-green-800': selectedIntervention.reclamation_details?.status === 'termine'
+            }" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+              {{ getStatusDisplay(selectedIntervention.reclamation_details?.status) }}
+            </span>
+          </p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Problème Constaté (Diagnostic) :</p>
+          <p class="whitespace-pre-line">{{ selectedIntervention.probleme_constate || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Analyse de Cause :</p>
+          <p class="whitespace-pre-line">{{ selectedIntervention.analyse_cause || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Actions Entreprises :</p>
+          <p class="whitespace-pre-line">{{ selectedIntervention.actions_entreprises || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Pièces Remplacées :</p>
+          <p>{{ selectedIntervention.pieces_remplacees || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Action Effectuée :</p>
+          <p>{{ selectedIntervention.action_effectuee || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Résultats des Tests :</p>
+          <p class="whitespace-pre-line">{{ selectedIntervention.resultat_tests || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Recommandations :</p>
+          <p class="whitespace-pre-line">{{ selectedIntervention.recommandations || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Mots-clés :</p>
+          <p>{{ selectedIntervention.mots_cles || 'Non spécifié' }}</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2">
+          <p class="text-sm font-semibold text-gray-600 mb-1">Fichier Joint :</p>
+          <p *ngIf="selectedIntervention.fichier_joint">
+            <button (click)="downloadJointFile(selectedIntervention)" 
+                    class="text-blue-600 hover:underline flex items-center hover:text-blue-800">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+              Télécharger le fichier
+            </button>
+          </p>
+          <p *ngIf="!selectedIntervention.fichier_joint">Aucun fichier joint</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+        <button (click)="closeDetailsModal()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          Fermer
+        </button>
+        <button *ngIf="selectedIntervention.reclamation_details?.status === 'termine' || selectedIntervention.rapport_pdf"
+                (click)="downloadReportPdf(selectedIntervention)"
+                class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center shadow-md hover:shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3" />
+          </svg>
+          Télécharger Rapport PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

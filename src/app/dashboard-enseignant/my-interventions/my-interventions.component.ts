@@ -186,39 +186,4 @@ export class MyInterventionsComponent implements OnInit {
       default: return status;
     }
   }
-
-  // Removed the old viewReport method as it's no longer needed for this download flow
-  // viewReport(intervention: Intervention): void { ... }
-
-  // If you need to manually trigger PDF generation (e.g., a separate "Finalize Report" button)
-  // That would call a service method that POSTs to the complete_report backend endpoint.
-  // Example (assuming you add a button in HTML and method in service):
-  // finalizeReport(intervention: Intervention): void {
-  //    if (!intervention.id) return;
-  //    // Collect report data if needed from form/modal
-  //    const reportData = { ... }; // Your form data
-  //    const formData = new FormData();
-  //    // Append reportData fields and the file input value to formData
-  //    // ...
-  //    this.isLoading = true;
-  //    this.interventionService.completeInterventionReport(intervention.id, formData).subscribe({
-  //      next: (updatedInterventionData) => {
-  //         this.isLoading = false;
-  //         this.showSuccessMessage('Rapport complété et PDF généré.');
-  //         // Update the intervention in your list with the response data
-  //         const index = this.interventions.findIndex(i => i.id === updatedInterventionData.id);
-  //         if (index > -1) {
-  //            this.interventions[index] = updatedInterventionData;
-  //            this.applyFilter(); // Re-filter the list
-  //            this.selectedIntervention = updatedInterventionData; // Update the displayed details if modal is open
-  //         }
-  //      },
-  //      error: (error) => {
-  //         this.isLoading = false;
-  //         this.errorMessage = 'Erreur lors de la finalisation du rapport.';
-  //         console.error(error);
-  //      }
-  //    });
-  // }
-
 }
