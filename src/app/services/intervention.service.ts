@@ -7,9 +7,13 @@ import { User } from '../models/User';
 // Interface for statistics response
 export interface StatsResponse {
   total_interventions: number;
-  technician_distribution: { [key: string]: number }; // technician_id: count
-  status_distribution: { [key: string]: number }; // status_key: count
-  technicians_data: User[]; // Full user objects for technicians
+  technician_distribution: { [key: string]: number };
+  status_distribution: { [key: string]: number };
+  status_summary: {
+    completed: number;
+    non_completed: number;
+  };
+  technicians_data: User[];
 }
 @Injectable({
   providedIn: 'root'
@@ -137,14 +141,18 @@ getOtherUsersInterventions(): Observable<Intervention[]> {
   }
 
   // Method to fetch statistics
-  getInterventionStats(technicianId: number | null = null): Observable<StatsResponse> {
-    let params = new HttpParams();
-    if (technicianId) {
-      params = params.set('technician_id', technicianId.toString());
-    }
-    return this.http.get<StatsResponse>(`${this.apiUrl}/interventions/stats/`, { params }).pipe(
-      catchError(this.handleError)
-    );
+getInterventionStats(technicianId: number | null = null): Observable<StatsResponse> {
+  let params = new HttpParams();
+  if (technicianId) {
+    params = params.set('technician_id', technicianId.toString());
   }
+  // Ajouter les en-têtes d'authentification
+  return this.http.get<StatsResponse>(`${this.apiUrl}/interventions/stats/`, { 
+    headers: this.getAuthHeaders(), 
+    params 
+  }).pipe(
+    catchError(this.handleError)
+  );
+}
 
 }

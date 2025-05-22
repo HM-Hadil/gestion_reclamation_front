@@ -21,49 +21,68 @@ import { ResponasbleListInterventionsComponent } from './responsable/responasble
 import { ResponasbleListReclamationsComponent } from './responsable/responasble-list-reclamations/responasble-list-reclamations.component';
 import { ResponasbleStatistiqueComponent } from './responsable/responasble-statistique/responasble-statistique.component';
 
+import { authGuard, roleGuard } from './auth.guard';
 
 const routes: Routes = [
-
-{ path: '', component: HomeComponent },
-{ path: 'login', component: LoginComponent },
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'register', component: RegisterComponent }, // Vérifie qu'il n'y a pas d'erreur ici
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'register', component: RegisterComponent },
   { path: 'reset-password/:token', component: NewPasswordComponent },
-  { path: 'profil', component: ProfilComponent },
+  
+  // Routes protégées avec auth guard et données de rôles
+  { 
+    path: 'profil', 
+    component: ProfilComponent, 
+    canActivate: [authGuard] 
+  },
 
-
-{ path: 'enseignant', component: EnseignantComponent ,children:[
-{path:'create-reclamation',component:CreateReclamationComponent},
-{path:'my-reclamations',component:MyReclamationsComponent},
-{path:'fiche-technique',component:FicheTechniqueComponent},
-{ path: 'my-interventions', component: MyInterventionsComponent },
-{path:'other-interventions',component:ListOthersInterventionsComponent},
-]},
-
-    { path: 'technicien', component: DashbordTechComponent,
-    children:[
-    {path:'list-reclamation-admin',component:ListReclamationsAdminComponent},
-    {path:'create-equipment',component:CreateEquipementComponent}
-
-    ]
-   },
-  { path: 'responsable', component: ResponsableComponent ,
-    children:[
-      {path:'list-interventions',component:ResponasbleListInterventionsComponent},
-      {path:'list-reclamations',component:ResponasbleListReclamationsComponent},
-      {path:'statistique',component:ResponasbleStatistiqueComponent}
-
+  { 
+    path: 'enseignant', 
+    component: EnseignantComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['enseignant', 'teacher'] },
+    children: [
+      { path: 'create-reclamation', component: CreateReclamationComponent },
+      { path: 'my-reclamations', component: MyReclamationsComponent },
+      { path: 'fiche-technique', component: FicheTechniqueComponent },
+      { path: 'my-interventions', component: MyInterventionsComponent },
+      { path: 'other-interventions', component: ListOthersInterventionsComponent },
+      { path: '', redirectTo: 'create-reclamation', pathMatch: 'full' }
     ]
   },
 
+  { 
+    path: 'technicien', 
+    component: DashbordTechComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['technicien', 'technician'] },
+    children: [
+      { path: 'list-reclamation-admin', component: ListReclamationsAdminComponent },
+      { path: 'create-equipment', component: CreateEquipementComponent },
+      { path: '', redirectTo: 'list-reclamation-admin', pathMatch: 'full' }
+    ]
+  },
 
+  { 
+    path: 'responsable', 
+    component: ResponsableComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['responsable', 'manager'] },
+    children: [
+      { path: 'list-interventions', component: ResponasbleListInterventionsComponent },
+      { path: 'list-reclamations', component: ResponasbleListReclamationsComponent },
+      { path: 'statistique', component: ResponasbleStatistiqueComponent },
+      { path: '', redirectTo: 'statistique', pathMatch: 'full' }
+    ]
+  },
 
-
+  // Redirection par défaut
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({
-  declarations: [],
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })

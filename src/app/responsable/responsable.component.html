@@ -13,10 +13,19 @@
   </button>
       <!-- Sidebar -->
       <aside class="w-64 bg-black bg-opacity-60 shadow-2xl h-screen p-5 fixed top-16 left-0 flex flex-col items-center" [class.hidden]="!isSidebarVisible">
-          <div class="text-center mt-4">
-              <img src="assets/user.jpg" alt="User Image" class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1">
-              <h2 class="text-xl font-semibold mt-3 text-gray-800">Responsable</h2>
-          </div>
+          <div class="text-center ">
+
+      <img [src]="profilePicture || 'assets/default-avatar.png'" 
+           alt="Image de l'utilisateur"
+           class="w-24 h-24 rounded-full mx-auto shadow-md bg-white p-1 cursor-pointer object-cover" 
+           > 
+      
+      <h2 class="text-xl font-semibold mt-3 text-gray-800 th-black">
+          Responsable: {{ user.firstName }} {{ user.lastName }}
+          </h2>
+      
+  </div>
+
           <nav class="mt-8 w-full bg-white bg-opacity-80 shadow-sm rounded-lg p-3 transition-all duration-300 hover:bg-gray-100">
               <ul class="space-y-2">
                   <button 
@@ -46,7 +55,7 @@
               </ul>
               <button 
                   class="bg-red-500 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition-all duration-150"
-                  [routerLink]="['/login']">
+                 (click)="logout()">
                   Déconnexion
               </button>
           </nav>

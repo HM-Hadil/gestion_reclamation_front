@@ -1,4 +1,8 @@
 import { Component } from '@angular/core';
+import { AuthService } from '../auth.service';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { UserProfile } from '../models/UserProfile';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-responsable',
@@ -14,7 +18,109 @@ export class ResponsableComponent {
   keywords: string = '';
   showInterventionStats = false;
   showReclamationStats = false;
+  userId!:number;
+constructor(    private authService: AuthService,
+    private router: Router
+  ) {
+    // Configuration de la recherche avec debounce
+ 
+  }
 
+
+
+logout(){
+  this.authService.logout()
+  this.router.navigate(["/login"])
+
+}
+//sectionAffichee = 'fiches-techniques';
+   user: UserProfile = {
+      id: null,
+      firstName: '',
+      lastName: '',
+      email: '',
+      role: '',
+      image: null
+    };
+  
+    profilePicture: string | ArrayBuffer | null = null;
+    selectedFile: File | null = null;
+    loading = false;
+    success = false;
+    error = '';
+  
+    private jwtHelper = new JwtHelperService();
+  
+  
+  
+    ngOnInit(): void {
+      if (!this.authService.isLoggedIn()) {
+        this.router.navigate(['/login']);
+        return;
+      }
+      
+      this.extractUserIdFromToken();
+    
+    }
+ 
+    extractUserIdFromToken(): void {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        this.error = 'Vous devez être connecté.';
+        return;
+      }
+  
+      try {
+        const decoded = this.jwtHelper.decodeToken(token);
+        const userId = decoded?.user_id || decoded?.id || decoded?.sub;
+  
+        if (userId) {
+          this.userId=userId;
+          this.user.id = +userId; // Conversion en nombre
+          this.fetchUserData(userId);
+        } else {
+          this.error = 'ID utilisateur introuvable dans le token.';
+        }
+      } catch (err) {
+        console.error('Erreur token:', err);
+        this.error = 'Token invalide.';
+        this.authService.logout();
+        this.router.navigate(['/login']);
+      }
+    }
+  
+    fetchUserData(userId: number): void {
+      this.authService.getUserById(userId).subscribe({
+        next: (data: any) => {
+          console.log('Données utilisateur reçues:', data);
+          
+          // Mise à jour sécurisée des propriétés de l'utilisateur
+          this.user = {
+            id: userId,
+            firstName: data.first_name || '',
+            lastName: data.last_name || '',
+            email: data.email || '',
+            role: data.role || '',
+            image: data.image || null
+          };
+          
+          if (data.image) {
+            this.profilePicture = data.image;
+          }
+        },
+        error: (err: { status: number; error: { message: any; }; }) => {
+          console.error('Erreur récupération utilisateur:', err);
+          this.error = `Erreur lors de la récupération des données (${err.status}): ${err.error?.message || 'Erreur inconnue'}`;
+          
+          if (err.status === 401) {
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }
+        }
+      });
+
+    }
+  
   // Liste des interventions (à remplacer par des données réelles)
   interventions = [
     { id: 1, title: 'Intervention 1', date: '2025-02-20', status: 'Terminé', technicien: 'Anwar' },
@@ -113,4 +219,5 @@ export class ResponsableComponent {
     const count = this.countByLocation(lieu);
     return Math.round((count / this.reclamations.length) * 100);
   }
+ 
 }

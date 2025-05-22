@@ -1,91 +1,111 @@
-<div class="p-6 bg-gray-100 min-h-screen">
-  <div class="bg-white shadow-md rounded-lg pt-4">
-    <div class="px-5 flex flex-col md:flex-row justify-between items-center">
-      <h3 class="text-2xl font-light text-gray-800 uppercase tracking-wider mb-4 md:mb-0">
-        Statistiques des Interventions
-      </h3>
-
-      <div class="relative w-full md:w-auto">
-        <button (click)="toggleTechnicianFilterDropdown()"
-          class="bg-white text-gray-700 px-4 py-2 rounded-full w-full flex items-center justify-between shadow-sm border border-gray-300 hover:bg-gray-50 transition-colors">
-          <span class="font-medium">Filtrer par Technicien</span>
-          <svg [class.rotate-180]="isTechnicianFilterDropdownVisible" class="w-4 h-4 transition-transform duration-200"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        <div *ngIf="isTechnicianFilterDropdownVisible"
-          class="absolute top-full left-0 mt-2 w-full bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200 animate-fade-in-down">
-          <ul class="text-gray-700">
-            <li class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer" (click)="filterByTechnician(null)">
-              Tous les techniciens
-            </li>
-            <li *ngFor="let technician of uniqueTechnicians"
-              class="px-4 py-2 hover:bg-gray-100 transition cursor-pointer"
-              (click)="filterByTechnician(technician.id)">
-              Par {{ technician.first_name }} {{ technician.last_name }}
-            </li>
-          </ul>
+<div class="container mx-auto p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Statistiques des Interventions</h1>
+    
+    <div class="relative">
+      <button 
+        (click)="toggleTechnicianFilterDropdown()"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        [disabled]="isLoading">
+        <span>{{ getCurrentFilterTechnicianName() }}</span>
+        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+      
+      <div *ngIf="isTechnicianFilterDropdownVisible" 
+           class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-10">
+        <div class="py-2">
+          <button 
+            (click)="filterByTechnician(null)"
+            class="w-full text-left px-4 py-2 hover:bg-gray-100">
+            Tous les techniciens
+          </button>
+          <button 
+            *ngFor="let tech of uniqueTechnicians"
+            (click)="filterByTechnician(tech.id)"
+            class="w-full text-left px-4 py-2 hover:bg-gray-100">
+            {{ tech.fullName }}
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="p-5 border-t border-gray-200 mt-5">
-      <h4 class="text-lg font-semibold mb-4 text-gray-700">Vue d'ensemble des Interventions</h4>
+  <div *ngIf="isLoading" class="flex justify-center items-center py-8">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    <span class="ml-3 text-gray-600">
+      {{ isLoadingUserDetails ? 'Chargement des détails utilisateur...' : 'Chargement des statistiques...' }}
+    </span>
+  </div>
 
-      <div *ngIf="isLoadingStats" class="flex items-center justify-center p-4 text-blue-600">
-        <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-          </path>
-        </svg>
-        Chargement des statistiques...
-      </div>
+  <div *ngIf="statsErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+    {{ statsErrorMessage }}
+  </div>
 
-      <div *ngIf="statsErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-        role="alert">
-        <strong class="font-bold">Erreur!</strong>
-        <span class="block sm:inline"> {{statsErrorMessage}}</span>
-      </div>
+  <div *ngIf="!isLoading && !statsErrorMessage" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Total des interventions</h3>
+      <p class="text-3xl font-bold text-blue-600">{{ totalInterventions }}</p>
+    </div>
 
-      <div *ngIf="!isLoadingStats && !statsErrorMessage">
-        <div class="mb-6">
-          <h5 class="font-medium text-gray-600 mb-2">Répartition par technicien</h5>
-          <div class="space-y-3">
-            <div *ngIf="totalInterventions === 0" class="text-gray-500">
-              Aucune intervention pour afficher les statistiques par technicien.
+    <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions terminées</h3>
+      <p class="text-3xl font-bold text-green-600">
+        {{ completionStats[0]?.count || 0 }}
+      </p>
+      <p class="text-sm text-gray-500">
+        {{ (completionStats[0]?.percentage || 0) | number:'1.1-1' }}%
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions en cours</h3>
+      <p class="text-3xl font-bold text-orange-600">
+        {{ completionStats[1]?.count || 0 }}
+      </p>
+      <p class="text-sm text-gray-500">
+        {{ (completionStats[1]?.percentage || 0) | number:'1.1-1' }}%
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && !statsErrorMessage" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par technicien</h3>
+      <div class="space-y-3">
+        <div *ngFor="let stat of technicianStats" class="flex items-center">
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+              <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
             </div>
-            <div *ngFor="let stat of technicianStats">
-              <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
-                <span class="text-sm font-medium text-gray-700">{{ stat.percentage | number:'1.0-0' }}%
-                  ({{ stat.count }}/{{ totalInterventions }})</span>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div class="h-2.5 rounded-full" [ngStyle]="{'width.%': stat.percentage}"
-                  [ngClass]="getTechnicianColorClass(stat.name)"></div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                [class]="getTechnicianColorClass(stat.name)"
+                class="h-2 rounded-full transition-all duration-300"
+                [style.width.%]="stat.percentage">
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div>
-          <h5 class="font-medium text-gray-600 mb-2">Répartition par statut</h5>
-          <div class="space-y-3">
-            <div *ngIf="totalInterventions === 0" class="text-gray-500">
-              Aucune intervention pour afficher les statistiques par statut.
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par statut</h3>
+      <div class="space-y-3">
+        <div *ngFor="let stat of statusStats" class="flex items-center">
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-700">{{ formatStatut(stat.name) }}</span>
+              <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
             </div>
-            <div *ngFor="let stat of statusStats">
-              <div class="flex justify-between mb-1">
-                <span class="text-sm font-medium text-gray-700">{{ formatStatut(stat.name) }}</span>
-                <span class="text-sm font-medium text-gray-700">{{ stat.percentage | number:'1.0-0' }}%
-                  ({{ stat.count }}/{{ totalInterventions }})</span>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div class="h-2.5 rounded-full" [ngStyle]="{'width.%': stat.percentage}"
-                  [ngClass]="getStatutColorClass(stat.name)"></div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                [class]="getStatutColorClass(stat.name)"
+                class="h-2 rounded-full transition-all duration-300"
+                [style.width.%]="stat.percentage">
               </div>
             </div>
           </div>
