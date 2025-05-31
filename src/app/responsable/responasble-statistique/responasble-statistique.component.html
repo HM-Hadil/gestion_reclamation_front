@@ -1,8 +1,28 @@
 <div class="container mx-auto p-6">
+  <!-- En-tête avec navigation par onglets -->
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Statistiques des Interventions</h1>
+    <div class="flex space-x-4">
+      <h1 class="text-3xl font-bold text-white">Statistiques</h1>
+      
+      <!-- Navigation par onglets -->
+      <div class="flex bg-gray-100 rounded-lg p-1">
+        <button 
+          (click)="switchToSection('interventions')"
+          [class]="currentSection === 'interventions' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+          class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+          Interventions
+        </button>
+        <button 
+          (click)="switchToSection('reclamations')"
+          [class]="currentSection === 'reclamations' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+          class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+          Réclamations
+        </button>
+      </div>
+    </div>
     
-    <div class="relative">
+    <!-- Filtre technicien (visible seulement pour les interventions) -->
+    <div class="relative" *ngIf="currentSection === 'interventions'">
       <button 
         (click)="toggleTechnicianFilterDropdown()"
         class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
@@ -32,84 +52,305 @@
     </div>
   </div>
 
+  <!-- Indicateur de chargement -->
   <div *ngIf="isLoading" class="flex justify-center items-center py-8">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
     <span class="ml-3 text-gray-600">
-      {{ isLoadingUserDetails ? 'Chargement des détails utilisateur...' : 'Chargement des statistiques...' }}
+      {{ isLoadingUserDetails ? 'Chargement des détails utilisateur...' : 
+         isLoadingReclamations ? 'Chargement des réclamations...' : 
+         'Chargement des statistiques...' }}
     </span>
   </div>
 
-  <div *ngIf="statsErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+  <!-- Messages d'erreur -->
+  <div *ngIf="statsErrorMessage && currentSection === 'interventions'" 
+       class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
     {{ statsErrorMessage }}
   </div>
-
-  <div *ngIf="!isLoading && !statsErrorMessage" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">Total des interventions</h3>
-      <p class="text-3xl font-bold text-blue-600">{{ totalInterventions }}</p>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions terminées</h3>
-      <p class="text-3xl font-bold text-green-600">
-        {{ completionStats[0]?.count || 0 }}
-      </p>
-      <p class="text-sm text-gray-500">
-        {{ (completionStats[0]?.percentage || 0) | number:'1.1-1' }}%
-      </p>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
-      <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions en cours</h3>
-      <p class="text-3xl font-bold text-orange-600">
-        {{ completionStats[1]?.count || 0 }}
-      </p>
-      <p class="text-sm text-gray-500">
-        {{ (completionStats[1]?.percentage || 0) | number:'1.1-1' }}%
-      </p>
-    </div>
+  
+  <div *ngIf="reclamationsErrorMessage && currentSection === 'reclamations'" 
+       class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+    {{ reclamationsErrorMessage }}
   </div>
 
-  <div *ngIf="!isLoading && !statsErrorMessage" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par technicien</h3>
-      <div class="space-y-3">
-        <div *ngFor="let stat of technicianStats" class="flex items-center">
-          <div class="flex-1">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
-              <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+  <!-- ================ SECTION INTERVENTIONS ================ -->
+  <div *ngIf="!isLoading && !statsErrorMessage && currentSection === 'interventions'">
+    <!-- Cartes de résumé interventions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Total des interventions</h3>
+        <p class="text-3xl font-bold text-blue-600">{{ totalInterventions }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions terminées</h3>
+        <p class="text-3xl font-bold text-green-600">
+          {{ completionStats[0]?.count || 0 }}
+        </p>
+        <p class="text-sm text-gray-500">
+          {{ (completionStats[0]?.percentage || 0) | number:'1.1-1' }}%
+        </p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6" *ngIf="completionStats.length > 0">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Interventions en cours</h3>
+        <p class="text-3xl font-bold text-orange-600">
+          {{ completionStats[1]?.count || 0 }}
+        </p>
+        <p class="text-sm text-gray-500">
+          {{ (completionStats[1]?.percentage || 0) | number:'1.1-1' }}%
+        </p>
+      </div>
+    </div>
+
+    <!-- Graphiques interventions -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par technicien</h3>
+        <div class="space-y-3">
+          <div *ngFor="let stat of technicianStats" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+                <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getTechnicianColorClass(stat.name)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
+              </div>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                [class]="getTechnicianColorClass(stat.name)"
-                class="h-2 rounded-full transition-all duration-300"
-                [style.width.%]="stat.percentage">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par statut</h3>
+        <div class="space-y-3">
+          <div *ngFor="let stat of statusStats" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ formatStatut(stat.name) }}</span>
+                <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getStatutColorClass(stat.name)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
-      <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par statut</h3>
-      <div class="space-y-3">
-        <div *ngFor="let stat of statusStats" class="flex items-center">
-          <div class="flex-1">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-sm font-medium text-gray-700">{{ formatStatut(stat.name) }}</span>
-              <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                [class]="getStatutColorClass(stat.name)"
-                class="h-2 rounded-full transition-all duration-300"
-                [style.width.%]="stat.percentage">
+  <!-- ================ SECTION RÉCLAMATIONS ================ -->
+  <div *ngIf="!isLoading && !reclamationsErrorMessage && currentSection === 'reclamations'">
+    <!-- Cartes de résumé réclamations -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Total des réclamations</h3>
+        <p class="text-3xl font-bold text-blue-600">{{ reclamationStats.totalReclamations }}</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Ce mois</h3>
+        <p class="text-3xl font-bold text-green-600">{{ reclamationStats.recentTrends.thisMonth }}</p>
+        <div class="flex items-center mt-2">
+          <span class="text-sm" 
+                [class]="reclamationStats.recentTrends.percentageChange >= 0 ? 'text-green-600' : 'text-red-600'">
+            <span *ngIf="reclamationStats.recentTrends.percentageChange >= 0">↗</span>
+            <span *ngIf="reclamationStats.recentTrends.percentageChange < 0">↘</span>
+            {{ reclamationStats.recentTrends.percentageChange | number:'1.1-1' }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Mois dernier</h3>
+        <p class="text-3xl font-bold text-gray-600">{{ reclamationStats.recentTrends.lastMonth }}</p>
+        <p class="text-sm text-gray-500 mt-2">Comparaison</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6" *ngIf="reclamationStats.byStatus.length > 0">
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Statut principal</h3>
+        <p class="text-2xl font-bold" 
+           [class]="getReclamationStatusColorClass(reclamationStats.byStatus[0].name)">
+          {{ reclamationStats.byStatus[0].name }}
+        </p>
+        <p class="text-sm text-gray-500">
+          {{ reclamationStats.byStatus[0].count }} réclamations
+          ({{ reclamationStats.byStatus[0].percentage | number:'1.1-1' }}%)
+        </p>
+      </div>
+    </div>
+
+    <!-- Graphiques réclamations - Ligne 1 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Graphique par catégorie -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par catégorie</h3>
+        <div class="space-y-3" *ngIf="reclamationStats.byCategory.length > 0">
+          <div *ngFor="let stat of reclamationStats.byCategory; let i = index" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+                <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getReclamationColorClass(i)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <div *ngIf="reclamationStats.byCategory.length === 0" class="text-center text-gray-500 py-8">
+          Aucune donnée disponible
+        </div>
+      </div>
+
+      <!-- Graphique par statut -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par statut</h3>
+        <div class="space-y-3" *ngIf="reclamationStats.byStatus.length > 0">
+          <div *ngFor="let stat of reclamationStats.byStatus" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+                <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getReclamationStatusColorClass(stat.name)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="reclamationStats.byStatus.length === 0" class="text-center text-gray-500 py-8">
+          Aucune donnée disponible
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques réclamations - Ligne 2: Types de problèmes fréquents -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+      <!-- Top des types de problèmes -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">
+          Top des types de problèmes
+          <span class="text-sm font-normal text-gray-500">(les plus fréquents)</span>
+        </h3>
+        <div class="space-y-3" *ngIf="reclamationStats.byProblemType.length > 0">
+          <div *ngFor="let stat of reclamationStats.byProblemType; let i = index" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700 leading-tight">{{ stat.name }}</span>
+                <span class="text-sm text-gray-500 ml-2 flex-shrink-0">
+                  {{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)
+                </span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getReclamationColorClass(i)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="reclamationStats.byProblemType.length === 0" class="text-center text-gray-500 py-8">
+          <div class="text-gray-400 mb-2">
+            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          Aucun type de problème spécifique identifié
+        </div>
+      </div>
+
+      <!-- Distribution par lieu général -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Distribution par lieu</h3>
+        <div class="space-y-3" *ngIf="reclamationStats.byLieu.length > 0">
+          <div *ngFor="let stat of reclamationStats.byLieu; let i = index" class="flex items-center">
+            <div class="flex-1">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+                <span class="text-sm text-gray-500">{{ stat.count }} ({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  [class]="getReclamationColorClass(i + 3)"
+                  class="h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="stat.percentage">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="reclamationStats.byLieu.length === 0" class="text-center text-gray-500 py-8">
+          Aucune donnée de lieu disponible
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphique des lieux exacts - Pleine largeur -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">
+        Top des lieux exacts avec le plus de réclamations
+      </h3>
+      <div class="space-y-3" *ngIf="reclamationStats.byLieuExact.length > 0">
+        <div *ngFor="let stat of reclamationStats.byLieuExact; let i = index" class="flex items-center">
+          <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+              <div class="flex items-center">
+                <span class="inline-flex items-center justify-center w-6 h-6 bg-gray-100 text-gray-600 text-xs font-medium rounded-full mr-3">
+                  {{ i + 1 }}
+                </span>
+                <span class="text-sm font-medium text-gray-700">{{ stat.name }}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-semibold text-gray-900">{{ stat.count }}</span>
+                <span class="text-sm text-gray-500 ml-1">réclamations</span>
+                <span class="text-sm text-gray-400 ml-2">({{ stat.percentage | number:'1.1-1' }}%)</span>
+              </div>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div 
+                [class]="getReclamationColorClass(i)"
+                class="h-3 rounded-full transition-all duration-500 relative"
+                [style.width.%]="stat.percentage">
+                <!-- Effet de brillance -->
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="reclamationStats.byLieuExact.length === 0" class="text-center text-gray-500 py-12">
+        <div class="text-gray-400 mb-4">
+          <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+        <p class="text-lg font-medium">Aucun lieu exact spécifié</p>
+        <p class="text-sm text-gray-400 mt-1">Les réclamations ne contiennent pas d'informations de lieu précis</p>
       </div>
     </div>
   </div>

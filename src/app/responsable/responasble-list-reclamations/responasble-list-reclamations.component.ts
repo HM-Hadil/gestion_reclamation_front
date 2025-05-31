@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { AuthService } from 'src/app/auth.service';
 import { Reclamation } from 'src/app/models/reclamation.model';
 import { ReclamationService } from 'src/app/services/reclamation.service';
 
@@ -23,8 +24,14 @@ export class ResponasbleListReclamationsComponent {
   // Variable pour la modal
   modalVisible: boolean = false;
   modalData: Reclamation | null = null;
+  
+  // Cache pour les utilisateurs
+  usersCache: { [key: number]: any } = {};
 
-  constructor(private reclamationService: ReclamationService) {}
+  constructor(
+    private reclamationService: ReclamationService,
+    private userService: AuthService // Injection du service utilisateur
+  ) {}
 
   ngOnInit(): void {
     this.loadReclamations();
@@ -36,8 +43,11 @@ export class ResponasbleListReclamationsComponent {
     
     this.reclamationService.AllfilterdReclamations().subscribe({
       next: (data) => {
+        console.log('rec', data);
         this.reclamations = data;
         this.filteredReclamations = data;
+        // Charger les informations utilisateur pour chaque réclamation
+        this.loadUsersInfo();
         this.isLoading = false;
       },
       error: (error: HttpErrorResponse) => {
@@ -46,6 +56,42 @@ export class ResponasbleListReclamationsComponent {
         console.error(error);
       }
     });
+  }
+
+  // Charger les informations des utilisateurs
+  loadUsersInfo(): void {
+    const userIds = [...new Set(this.reclamations.map(r => r.user))];
+    
+    userIds.forEach(userId => {
+      if (userId && !this.usersCache[userId]) {
+        this.userService.getUserById(userId).subscribe({
+          next: (user) => {
+            this.usersCache[userId] = user;
+          },
+          error: (error) => {
+            console.error(`Erreur lors de la récupération de l'utilisateur ${userId}:`, error);
+          }
+        });
+      }
+    });
+  }
+
+  // Obtenir le nom de l'utilisateur
+  getUserName(userId: number): string {
+    const user = this.usersCache[userId];
+    if (user) {
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || `Utilisateur ${userId}`;
+    }
+    return `Utilisateur ${userId}`;
+  }
+
+  // Obtenir le nom du poste PC si applicable
+  getPcPosteName(reclamation: Reclamation): string {
+    // Vérifier si c'est dans un labo ET si c'est une réclamation PC
+    if (reclamation.lieu === 'labo' && reclamation.category === 'pc' && reclamation.pc_info?.poste) {
+      return reclamation.pc_info.poste;
+    }
+    return '';
   }
 
   // Méthode pour la barre de recherche
@@ -58,7 +104,8 @@ export class ResponasbleListReclamationsComponent {
         (reclamation.id.toString().includes(lowerSearchTerm)) ||
         (reclamation.description_generale && reclamation.description_generale.toLowerCase().includes(lowerSearchTerm)) ||
         (reclamation.lieu && reclamation.lieu.toLowerCase().includes(lowerSearchTerm)) ||
-        (reclamation.category && reclamation.category.toLowerCase().includes(lowerSearchTerm))
+        (reclamation.category && reclamation.category.toLowerCase().includes(lowerSearchTerm)) ||
+        (this.getUserName(reclamation.user).toLowerCase().includes(lowerSearchTerm))
       );
     }
   }
@@ -92,11 +139,10 @@ export class ResponasbleListReclamationsComponent {
     this.isFilterDropdownVisible = false;
   }
 
- 
- 
   private handleFilterResponse = {
     next: (data: Reclamation[]) => {
       this.filteredReclamations = data;
+      this.loadUsersInfo(); // Recharger les infos utilisateur après filtrage
       this.isLoading = false;
     },
     error: (error: HttpErrorResponse) => {

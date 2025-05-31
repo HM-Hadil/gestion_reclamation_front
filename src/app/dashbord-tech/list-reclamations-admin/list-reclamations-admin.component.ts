@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ReclamationService } from '../../services/reclamation.service';
 import { InterventionService } from '../../services/intervention.service';
+import { AuthService } from 'src/app/auth.service';
 import { Reclamation } from '../../models/reclamation.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InterventionFormData, Intervention } from 'src/app/models/Intervention';
@@ -26,6 +27,9 @@ export class ListReclamationsAdminComponent implements OnInit {
 
   searchTerm: string = '';
 
+  // Cache pour les utilisateurs (même logique que le composant responsable)
+  usersCache: { [key: number]: any } = {};
+
   // Modèle pour le formulaire d'intervention 
   interventionFormData: InterventionFormData = {
     reclamation: 0,
@@ -45,7 +49,8 @@ export class ListReclamationsAdminComponent implements OnInit {
 
   constructor(
     private reclamationService: ReclamationService,
-    private interventionService: InterventionService
+    private interventionService: InterventionService,
+    private userService: AuthService // Ajout du service utilisateur
   ) { }
 
   ngOnInit(): void {
@@ -57,11 +62,12 @@ export class ListReclamationsAdminComponent implements OnInit {
     this.errorMessage = null;
     this.reclamationService.AllfilterdReclamations().subscribe({
       next: (data) => {
+        console.log('rec', data);
         this.reclamations = data;
         this.filteredReclamations = data;
+        // Charger les informations utilisateur pour chaque réclamation
+        this.loadUsersInfo();
         this.isLoading = false;
-        
-        // Pour chaque réclamation, vérifier si elle a des interventions
       },
       error: (error: HttpErrorResponse) => {
         this.errorMessage = `Erreur lors de la récupération des réclamations: ${error.message}`;
@@ -70,22 +76,264 @@ export class ListReclamationsAdminComponent implements OnInit {
       }
     });
   }
-  
 
+  // Charger les informations des utilisateurs (même logique que le composant responsable)
+  loadUsersInfo(): void {
+    const userIds = [...new Set(this.reclamations.map(r => r.user))];
+    
+    userIds.forEach(userId => {
+      if (userId && !this.usersCache[userId]) {
+        this.userService.getUserById(userId).subscribe({
+          next: (user) => {
+            this.usersCache[userId] = user;
+          },
+          error: (error) => {
+            console.error(`Erreur lors de la récupération de l'utilisateur ${userId}:`, error);
+          }
+        });
+      }
+    });
+  }
 
-  // Méthode pour la barre de recherche
-  onSearchChange(): void {
-    if (!this.searchTerm) {
-      this.filteredReclamations = [...this.reclamations];
-    } else {
-      const lowerSearchTerm = this.searchTerm.toLowerCase();
-      this.filteredReclamations = this.reclamations.filter(reclamation =>
-        (reclamation.id.toString().includes(lowerSearchTerm)) ||
-        (reclamation.description_generale && reclamation.description_generale.toLowerCase().includes(lowerSearchTerm)) ||
-        (reclamation.lieu && reclamation.lieu.toLowerCase().includes(lowerSearchTerm)) ||
-        (reclamation.category && reclamation.category.toLowerCase().includes(lowerSearchTerm))
-      );
+  // Obtenir le nom de l'utilisateur (même logique que le composant responsable)
+  getUserName(userId: number): string {
+    const user = this.usersCache[userId];
+    if (user) {
+      return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || `Utilisateur ${userId}`;
     }
+    return `Utilisateur ${userId}`;
+  }
+
+  // Obtenir le nom complet avec email pour les détails
+  getUserFullName(reclamation: Reclamation): string {
+    const user = this.usersCache[reclamation.user];
+    if (user) {
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      if (fullName && user.email) {
+        return `${fullName} (${user.email})`;
+      } else if (fullName) {
+        return fullName;
+      } else if (user.email) {
+        return user.email;
+      }
+    }
+    return `Utilisateur #${reclamation.user}`;
+  }
+
+  // Obtenir le nom compact (sans email)
+  getUserCompactName(reclamation: Reclamation): string {
+    const user = this.usersCache[reclamation.user];
+    if (user) {
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      if (fullName) {
+        return fullName;
+      } else if (user.email) {
+        const emailUsername = user.email.split('@')[0];
+        return emailUsername;
+      }
+    }
+    return `Utilisateur #${reclamation.user}`;
+  }
+
+  // Obtenir l'email de l'utilisateur
+  getUserEmail(reclamation: Reclamation): string {
+    const user = this.usersCache[reclamation.user];
+    if (user?.email) {
+      return user.email;
+    }
+    return 'Email non disponible';
+  }
+
+  // Obtenir les initiales de l'utilisateur
+  getUserInitials(reclamation: Reclamation): string {
+    const user = this.usersCache[reclamation.user];
+    if (user) {
+      const firstname = user.first_name || '';
+      const lastname = user.last_name || '';
+      
+      if (firstname && lastname) {
+        return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+      } else if (firstname) {
+        return firstname.charAt(0).toUpperCase();
+      } else if (lastname) {
+        return lastname.charAt(0).toUpperCase();
+      } else if (user.email) {
+        return user.email.charAt(0).toUpperCase();
+      }
+    }
+    return 'U';
+  }
+
+  // Vérifier si les détails utilisateur sont disponibles
+  hasUserDetails(reclamation: Reclamation): boolean {
+    const user = this.usersCache[reclamation.user];
+    return !!(user && (user.first_name || user.last_name || user.email));
+  }
+
+  // Obtenir l'ID utilisateur
+  getUserId(reclamation: Reclamation): number {
+    return reclamation.user;
+  }
+
+  // Obtenir le nom du poste PC si applicable (même logique que le composant responsable)
+  getPcPosteName(reclamation: Reclamation): string {
+    // Vérifier si c'est dans un labo ET si c'est une réclamation PC
+    if (reclamation.lieu === 'labo' && reclamation.category === 'pc' && reclamation.pc_info?.poste) {
+      return reclamation.pc_info.poste;
+    }
+    return '';
+  }
+
+  // Méthodes pour le laboratoire - utiliser les mêmes noms de propriétés que le responsable
+  getLaboratoireName(reclamation: Reclamation): string {
+    // Utiliser laboratoire_details s'il existe, sinon fallback
+    if (reclamation.laboratoire_details) {
+      return reclamation.laboratoire_details.nom;
+    }
+    return reclamation.laboratoire ? `Laboratoire #${reclamation.laboratoire}` : 'Non spécifié';
+  }
+
+  getLaboratoireDetails(reclamation: Reclamation): string {
+    if (reclamation.laboratoire_details) {
+      let details = reclamation.laboratoire_details.nom;
+      if (reclamation.laboratoire_details.modele_postes) {
+        details += ` - Modèle: ${reclamation.laboratoire_details.modele_postes}`;
+      }
+      if (reclamation.laboratoire_details.processeur) {
+        details += ` - CPU: ${reclamation.laboratoire_details.processeur}`;
+      }
+      if (reclamation.laboratoire_details.memoire_ram) {
+        details += ` - RAM: ${reclamation.laboratoire_details.memoire_ram}`;
+      }
+      return details;
+    }
+    return 'Informations laboratoire non disponibles';
+  }
+
+  // Méthodes pour l'équipement
+  getEquipementName(reclamation: Reclamation): string {
+    if (reclamation.equipement_details) {
+      const nom = reclamation.equipement_details.nom || reclamation.equipement_details.identificateur;
+      const type = reclamation.equipement_details.type;
+      return `${nom} (${type.toUpperCase()})`;
+    }
+    return reclamation.equipement ? `Équipement #${reclamation.equipement}` : 'Non spécifié';
+  }
+
+  getEquipementIdentifier(reclamation: Reclamation): string {
+    if (reclamation.equipement_details) {
+      return reclamation.equipement_details.identificateur;
+    }
+    return reclamation.equipement ? `Équipement #${reclamation.equipement}` : 'Non spécifié';
+  }
+
+  getEquipementType(reclamation: Reclamation): string {
+    if (reclamation.equipement_details) {
+      const typeLabels = {
+        'pc': 'Ordinateur',
+        'electrique': 'Équipement électrique',
+        'divers': 'Équipement divers'
+      };
+      return typeLabels[reclamation.equipement_details.type] || reclamation.equipement_details.type;
+    }
+    return 'Type non spécifié';
+  }
+
+  // Obtenir le lieu complet avec détails
+  getLieuComplet(reclamation: Reclamation): string {
+    const lieuBase = reclamation.lieu ? reclamation.lieu.charAt(0).toUpperCase() + reclamation.lieu.slice(1) : 'Non spécifié';
+    const lieuExacte = reclamation.lieuExacte ? ` - ${reclamation.lieuExacte}` : '';
+    
+    // Si c'est un laboratoire, ajouter le nom du labo
+    if (reclamation.lieu === 'labo' && reclamation.laboratoire_details) {
+      return `${lieuBase} (${reclamation.laboratoire_details.nom})${lieuExacte}`;
+    }
+    
+    return `${lieuBase}${lieuExacte}`;
+  }
+
+  // Obtenir la catégorie avec libellé français
+  getCategoryLabel(reclamation: Reclamation): string {
+    const categoryLabels = {
+      'pc': 'Problème informatique',
+      'electrique': 'Problème électrique',
+      'divers': 'Problème divers'
+    };
+    return reclamation.category ? categoryLabels[reclamation.category] || reclamation.category : 'Non spécifié';
+  }
+
+  // Obtenir le statut avec libellé français
+  getStatusLabel(reclamation: Reclamation): string {
+    const statusLabels = {
+      'en_attente': 'En attente',
+      'en_cours': 'En cours',
+      'termine': 'Terminé'
+    };
+    return statusLabels[reclamation.status] || reclamation.status;
+  }
+
+  // Méthode pour la barre de recherche - mise à jour pour utiliser le cache utilisateur
+  onSearchChange(): void {
+    if (!this.searchTerm || this.searchTerm.trim() === '') {
+      this.filteredReclamations = [...this.reclamations];
+      return;
+    }
+
+    const lowerSearchTerm = this.searchTerm.toLowerCase().trim();
+    this.filteredReclamations = this.reclamations.filter(reclamation => {
+      // Recherche dans l'ID
+      const idMatch = reclamation.id.toString().includes(lowerSearchTerm);
+      
+      // Recherche dans la description générale
+      const descriptionMatch = reclamation.description_generale && 
+        reclamation.description_generale.toLowerCase().includes(lowerSearchTerm);
+      
+      // Recherche dans le lieu
+      const lieuMatch = reclamation.lieu && 
+        reclamation.lieu.toLowerCase().includes(lowerSearchTerm);
+      
+      // Recherche dans le lieu exacte
+      const lieuExacteMatch = reclamation.lieuExacte && 
+        reclamation.lieuExacte.toLowerCase().includes(lowerSearchTerm);
+      
+      // Recherche dans la catégorie
+      const categoryMatch = reclamation.category && 
+        reclamation.category.toLowerCase().includes(lowerSearchTerm);
+      
+      // Recherche dans le statut
+      const statusMatch = reclamation.status && 
+        reclamation.status.toLowerCase().includes(lowerSearchTerm);
+
+      // Recherche dans le nom de l'utilisateur en utilisant le cache
+      const userMatch = this.getUserName(reclamation.user).toLowerCase().includes(lowerSearchTerm);
+
+      // Recherche dans l'email de l'utilisateur
+      let emailMatch = false;
+      const user = this.usersCache[reclamation.user];
+      if (user?.email) {
+        emailMatch = user.email.toLowerCase().includes(lowerSearchTerm);
+      }
+
+      // Recherche dans le nom du laboratoire
+      const laboMatch = reclamation.laboratoire_details && 
+        reclamation.laboratoire_details.nom.toLowerCase().includes(lowerSearchTerm);
+
+      // Recherche dans le nom de l'équipement
+      const equipementMatch = reclamation.equipement_details && 
+        (reclamation.equipement_details.nom || reclamation.equipement_details.identificateur)
+          .toLowerCase().includes(lowerSearchTerm);
+
+      // Recherche dans l'identificateur de l'équipement
+      const identifierMatch = reclamation.equipement_details && 
+        reclamation.equipement_details.identificateur.toLowerCase().includes(lowerSearchTerm);
+
+      // Recherche dans le nom du poste PC
+      const pcPosteMatch = this.getPcPosteName(reclamation).toLowerCase().includes(lowerSearchTerm);
+
+      return idMatch || descriptionMatch || lieuMatch || lieuExacteMatch || 
+             categoryMatch || statusMatch || userMatch || emailMatch || 
+             laboMatch || equipementMatch || identifierMatch || pcPosteMatch;
+    });
   }
 
   toggleFilterDropdown(): void {
@@ -109,16 +357,23 @@ export class ListReclamationsAdminComponent implements OnInit {
 
   filterByStatut(statut?: 'en_attente' | 'en_cours' | 'termine'): void {
     if (statut) {
-        this.reclamationService.filterReclamations(undefined, undefined, statut).subscribe(this.handleFilterResponse);
+        this.reclamationService.AllfilterdReclamations(undefined, undefined, statut).subscribe(this.handleFilterResponse);
     } else {
         this.filteredReclamations = [...this.reclamations];
     }
     this.isFilterDropdownVisible = false;
   }
- 
+
+  resetFilters(): void {
+    this.filteredReclamations = [...this.reclamations];
+    this.searchTerm = '';
+    this.isFilterDropdownVisible = false;
+  }
+
   private handleFilterResponse = {
     next: (data: Reclamation[]) => {
       this.filteredReclamations = data;
+      this.loadUsersInfo(); // Recharger les infos utilisateur après filtrage
       this.isLoading = false;
     },
     error: (error: HttpErrorResponse) => {
@@ -200,13 +455,10 @@ export class ListReclamationsAdminComponent implements OnInit {
     formData.append('mots_cles', this.interventionFormData.motsCles);
     formData.append('action_effectuee', this.interventionFormData.actionEffectuee || 'reparation');
     
-    // Ajout des fichiers - CORRECTION : Un seul fichier dans le modèle, mais possibilité d'en joindre plusieurs
+    // Ajout des fichiers
     if (this.interventionFormData.fichiersJoints.length > 0) {
-      // Premier fichier pour le champ fichier_joint
       formData.append('fichier_joint', this.interventionFormData.fichiersJoints[0]);
       
-      // Si plus d'un fichier, on les ajoute avec un autre nom de champ
-      // Note: La gestion de plusieurs fichiers nécessitera des ajustements dans le backend
       for (let i = 1; i < this.interventionFormData.fichiersJoints.length; i++) {
         formData.append(`fichier_joint_annexe_${i}`, this.interventionFormData.fichiersJoints[i]);
       }
@@ -229,20 +481,15 @@ export class ListReclamationsAdminComponent implements OnInit {
   }
 
   private generateInterventionReport(interventionId: number): void {
-    // Création d'un FormData vide car toutes les données sont déjà sauvegardées
     const formData = new FormData();
 
     this.interventionService.completeInterventionReport(interventionId, formData).subscribe({
       next: (blob: Blob) => {
         this.isLoading = false;
         
-        // Créer un URL pour le blob
         const url = window.URL.createObjectURL(blob);
-        
-        // Ouvrir le PDF dans un nouvel onglet
         window.open(url);
         
-        // Mise à jour du statut de la réclamation
         this.updateReclamationStatus();
       },
       error: (error) => {
@@ -262,23 +509,16 @@ export class ListReclamationsAdminComponent implements OnInit {
 
     this.reclamationService.updateReclamation(this.selectedReclamation.id, updatedData).subscribe({
       next: (updatedReclamation) => {
-        // Mise à jour des données locales
         const index = this.reclamations.findIndex(r => r.id === updatedReclamation.id);
         if (index !== -1) {
           this.reclamations[index] = updatedReclamation;
-          // Mise à jour dans filteredReclamations également
           const filteredIndex = this.filteredReclamations.findIndex(r => r.id === updatedReclamation.id);
           if (filteredIndex !== -1) {
             this.filteredReclamations[filteredIndex] = updatedReclamation;
           }
         }
         
-        // Recharger les interventions pour voir les résultats immédiatement
-        
-        // Fermer la modale après validation
         this.closeModal();
-        
-        // Afficher un message de confirmation
         this.showSuccessMessage('Intervention enregistrée et rapport généré avec succès');
       },
       error: (error) => {
@@ -288,17 +528,14 @@ export class ListReclamationsAdminComponent implements OnInit {
     });
   }
 
-  // Méthode pour afficher un message de succès
   private showSuccessMessage(message: string): void {
     this.successMessage = message;
     
-    // Faire disparaître le message après quelques secondes
     setTimeout(() => {
       this.successMessage = null;
     }, 5000);
   }
 
-  // Méthode pour obtenir le titre de la réclamation
   getReclamationTitle(reclamation: Reclamation): string {
     if (reclamation.description_generale && reclamation.description_generale.length > 50) {
         return reclamation.description_generale.substring(0, 50) + '...';
@@ -306,11 +543,10 @@ export class ListReclamationsAdminComponent implements OnInit {
     return reclamation.description_generale || `Réclamation #${reclamation.id}`;
   }
 
-  // Méthode pour obtenir la description complète
   getReclamationFullDescription(reclamation: Reclamation | null): string {
       if (!reclamation) return '';
      
-      let description = reclamation.description_generale || 'N/A';
+      let description = reclamation.description_generale || 'Non spécifié';
      
       if (reclamation.category === 'pc' && reclamation.pc_details) {
           description += `\nType de problème PC: ${reclamation.pc_details.type_probleme}. \nDétails: ${reclamation.pc_details.description_probleme || 'Non spécifié'}`;
@@ -320,5 +556,35 @@ export class ListReclamationsAdminComponent implements OnInit {
           description += `\nType de problème divers: ${reclamation.divers_details.type_probleme}. \nDétails: ${reclamation.divers_details.description_probleme || 'Non spécifié'}`;
       }
       return description;
+  }
+
+  // Obtenir la classe CSS de priorité (ajouté pour la cohérence)
+  getPrioriteClass(priorite: string): string {
+    switch(priorite) {
+      case 'Haute': return 'bg-red-100 text-red-800';
+      case 'Moyenne': return 'bg-amber-100 text-amber-800';
+      case 'Basse': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  // Obtenir la classe CSS de statut (ajouté pour la cohérence)
+  getStatutClass(statut: string): string {
+    switch(statut) {
+      case 'en_attente': return 'bg-red-100 text-red-800';
+      case 'en_cours': return 'bg-blue-100 text-blue-800';
+      case 'termine': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  // Formater le statut pour l'affichage (ajouté pour la cohérence)
+  formatStatut(statut: string): string {
+    switch(statut) {
+      case 'en_attente': return 'En attente';
+      case 'en_cours': return 'En cours';
+      case 'termine': return 'Terminé';
+      default: return statut;
+    }
   }
 }

@@ -19,7 +19,7 @@ export class RegisterComponent {
       first_name: ['', Validators.required],
       last_name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email, emailDomainValidator]], // Ajout du validateur
-      role: ['responsable', Validators.required],
+      role: ['enseignant', Validators.required],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }

@@ -38,11 +38,22 @@ th {
     background-repeat: no-repeat;
     padding: 20px;
     font-family: 'Roboto', sans-serif;
-    margin-top: 18px;
-    padding-top: 3rem; /* Ajoute de l'espace pour la flèche */
+    margin-top: 80px;
     margin-left: 0;
     transition: transform 0.3s ease;
+     overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
   }
+     /* Webkit scrollbar styling */
+        aside::-webkit-scrollbar {
+            width: 6px;
+        }
+    /* Contenu scrollable */
+        .scrollable-content {
+            flex: 1;
+            min-height: 0;
+        }
 
   button[class*="fixed"] {
     width: 50px;
@@ -52,6 +63,7 @@ th {
     justify-content: center;
     transition: left 0.3s ease, transform 0.2s ease;
     cursor: pointer;
+    margin-bottom: 2rem;
 }
 
 

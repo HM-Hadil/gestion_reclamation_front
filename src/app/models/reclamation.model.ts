@@ -1,5 +1,34 @@
 // src/app/models/reclamation.model.ts
 
+import { PC } from "./gestion.model";
+
+// Interface pour les informations utilisateur
+export interface User {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email?: string;
+}
+
+// Interface pour les informations laboratoire
+export interface Laboratoire {
+  id: number;
+  nom: string;
+  modele_postes?: string;
+  processeur?: string;
+  memoire_ram?: string;
+  stockage?: string;
+}
+
+// Interface pour les informations équipement
+export interface Equipement {
+  id: number;
+  laboratoire: number;
+  type: 'pc' | 'electrique' | 'divers';
+  identificateur: string;
+  nom?: string; // Nom du PC ou équipement
+}
+
 // Types de base
 export interface BaseReclamation {
   id: number;
@@ -9,15 +38,22 @@ export interface BaseReclamation {
   category: 'pc' | 'electrique' | 'divers' | null;
   description_generale: string | null;
   lieu: 'labo' | 'salle' | 'bureau';
+  lieuExacte: string;
   laboratoire: number | null;
   equipement: number | null;
+  pc_info:PC;
+  
+  // Informations enrichies (populated par le backend)
+  user_details?: User;
+  laboratoire_details?: Laboratoire;
+  equipement_details?: Equipement;
 }
 
 // Détails pour réclamation PC
 export interface ReclamationPCDetails {
   id?: number;
   reclamation?: number;
-  laboId:number | null;
+  laboId: number | null;
   type_probleme: 'materiel' | 'logiciel';
   description_probleme: string | null;
 }
@@ -48,9 +84,10 @@ export interface Reclamation extends BaseReclamation {
 // Types pour la création de réclamations
 export interface CreateReclamationRequest {
   lieu: 'labo' | 'salle' | 'bureau';
+  lieuExacte: string;
   laboratoire?: number | null;
-  salle?: number | null;      // Ajout du champ manquant
-  bureau?: number | null;     // Ajout du champ manquant
+  salle?: number | null;
+  bureau?: number | null;
   equipement?: number | null;
   category: 'pc' | 'electrique' | 'divers';
   description_generale?: string | null;
@@ -120,21 +157,4 @@ export interface StatistiqueCategorie {
   total_reclamations: number;
   reclamations_terminees: number;
   taux_resolution: number;
-}
-
-// Interfaces pour les objets liés
-export interface Laboratoire {
-  id: number;
-  nom: string;
-  modele_postes?: string;
-  processeur?: string;
-  memoire_ram?: string;
-  stockage?: string;
-}
-
-export interface Equipement {
-  id: number;
-  laboratoire: number;
-  type: 'pc' | 'electrique' | 'divers';
-  identificateur: string;
 }

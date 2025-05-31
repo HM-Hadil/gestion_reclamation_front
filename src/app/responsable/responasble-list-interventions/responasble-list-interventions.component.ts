@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { InterventionService } from 'src/app/services/intervention.service';
 
-
 @Component({
   selector: 'app-responasble-list-interventions',
   templateUrl: './responasble-list-interventions.component.html',
@@ -32,14 +31,50 @@ export class ResponasbleListInterventionsComponent implements OnInit {
     
     this.interventionService.getAllInterventions().subscribe({
       next: (data) => {
-        this.interventions = data;
+        console.log('Données reçues:', data); // Pour déboguer
+        
+        // Vérifier si data est un tableau ou un objet avec une propriété contenant le tableau
+        if (Array.isArray(data)) {
+          this.interventions = data;
+        } else if (data && typeof data === 'object') {
+          // Si la réponse est un objet, chercher la propriété contenant les interventions
+          // Propriétés communes: results, data, interventions, items
+          if (data && Array.isArray(data)) {
+            this.interventions = data;
+          }  else {
+            // Si aucune propriété standard n'est trouvée, prendre la première propriété qui est un tableau
+            const arrayProperty = Object.keys(data).find(key => Array.isArray(data[key]));
+            if (arrayProperty) {
+              this.interventions = data[arrayProperty];
+            } else {
+              console.error('Structure de données non reconnue:', data);
+              this.interventions = [];
+              this.errorMessage = "Format de données non reconnu.";
+            }
+          }
+        } else {
+          console.error('Données reçues ne sont ni un tableau ni un objet:', data);
+          this.interventions = [];
+          this.errorMessage = "Format de données incorrect.";
+        }
+        
         this.filteredInterventions = [...this.interventions];
         this.isLoading = false;
+        
+        console.log('Interventions chargées:', this.interventions.length);
       },
       error: (error) => {
         this.errorMessage = "Erreur lors du chargement des interventions. Veuillez réessayer plus tard.";
         this.isLoading = false;
         console.error('Erreur :', error);
+        
+        // Détails supplémentaires pour le débogage
+        if (error.status) {
+          console.error('Status HTTP:', error.status);
+        }
+        if (error.error) {
+          console.error('Détails de l\'erreur:', error.error);
+        }
       }
     });
   }
@@ -55,7 +90,16 @@ export class ResponasbleListInterventionsComponent implements OnInit {
       return (
         (intervention.probleme_constate && intervention.probleme_constate.toLowerCase().includes(searchTermLower)) ||
         (intervention.analyse_cause && intervention.analyse_cause.toLowerCase().includes(searchTermLower)) ||
-        (intervention.id && intervention.id.toString().includes(searchTermLower))
+        (intervention.id && intervention.id.toString().includes(searchTermLower)) ||
+        // Ajout du filtre par lieu
+        (intervention.lieu && intervention.lieu.toLowerCase().includes(searchTermLower)) ||
+        (intervention.adresse && intervention.adresse.toLowerCase().includes(searchTermLower)) ||
+        (intervention.localisation && intervention.localisation.toLowerCase().includes(searchTermLower)) ||
+        // Si lieu est un objet avec des propriétés
+        (intervention.lieu && typeof intervention.lieu === 'object' && intervention.lieu.nom && 
+         intervention.lieu.nom.toLowerCase().includes(searchTermLower)) ||
+        (intervention.lieu && typeof intervention.lieu === 'object' && intervention.lieu.adresse && 
+         intervention.lieu.adresse.toLowerCase().includes(searchTermLower))
       );
     });
   }
@@ -137,5 +181,23 @@ export class ResponasbleListInterventionsComponent implements OnInit {
     }
     
     window.open(intervention.rapport_pdf, '_blank');
+  }
+
+  // Méthode pour obtenir le lieu d'affichage
+  getLieuDisplay(intervention: any): string {
+    if (!intervention) return 'Non spécifié';
+    
+    // Si lieu est une chaîne
+    if (typeof intervention.lieu === 'string') {
+      return intervention.lieu;
+    }
+    
+    // Si lieu est un objet
+    if (intervention.lieu && typeof intervention.lieu === 'object') {
+      return intervention.lieu.nom || intervention.lieu.adresse || 'Lieu non spécifié';
+    }
+    
+    // Alternatives
+    return intervention.adresse || intervention.localisation || 'Non spécifié';
   }
 }

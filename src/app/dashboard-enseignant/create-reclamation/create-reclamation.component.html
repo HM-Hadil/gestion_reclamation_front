@@ -181,8 +181,8 @@
                        (ngModelChange)="onPCSelect($event)" required #pcIdInput="ngModel"
                        class="form-radio text-red-500 h-4 w-4 focus:ring-red-500 border-gray-300">
                 <div>
-                    <span class="text-gray-800 font-medium">PC #{{ pc.id }}</span>
-                    <span *ngIf="pc.poste" class="text-gray-600 text-sm ml-2">({{ pc.id }})</span>
+                    <span class="text-gray-800 font-medium">{{ pc.poste}}</span>
+                    <span *ngIf="pc.poste" class="text-gray-600 text-sm ml-2">({{ pc.poste }})</span>
                 </div>
             </label>
         </div>

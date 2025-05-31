@@ -110,26 +110,7 @@
     <div class="p-6 space-y-6">
       <!-- Métadonnées -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Carte Statut -->
-        <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
-          <div class="flex items-center space-x-3">
-            <div class="bg-blue-100 text-blue-800 p-2 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </div>
-            <div>
-              <h4 class="text-xs font-medium text-blue-600">STATUT</h4>
-              <span [ngClass]="{
-                'bg-green-100 text-green-800': getStatusDisplay(selectedIntervention?.reclamation_details?.status) === 'Terminée',
-                'bg-amber-100 text-amber-800': getStatusDisplay(selectedIntervention?.reclamation_details?.status) === 'En cours',
-                'bg-red-100 text-red-800': getStatusDisplay(selectedIntervention?.reclamation_details?.status) === 'En attente'
-              }" class="px-2 py-1 rounded-full text-xs font-medium">
-                {{getStatusDisplay(selectedIntervention?.reclamation_details?.status)}}
-              </span>
-            </div>
-          </div>
-        </div>
+      
 
         <!-- Date d'intervention -->
         <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">

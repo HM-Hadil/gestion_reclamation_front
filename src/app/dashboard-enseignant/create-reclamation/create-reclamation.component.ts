@@ -10,10 +10,21 @@ import { CreateReclamationRequest } from '../../models/reclamation.model';
 import { ReclamationService } from '../../services/reclamation.service';
 import { NgForm } from '@angular/forms';
 
-interface Salle { id: number; nom: string;}
-interface Bureau { id: number; nom: string;}
+interface Salle { 
+  id: number; 
+  nom: string;
+  capacite?: number;
+  equipements?: string;
+}
 
-// Mise à jour de l'interface PC Details avec laboId
+interface Bureau { 
+  id: number; 
+  nom: string;
+  etage?: number;
+  responsable?: string;
+}
+
+// Interface PC Details mise à jour
 export interface ReclamationPCDetails {
   id?: number;
   reclamation?: number;
@@ -31,6 +42,7 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
   laboratoires: Laboratoire[] = [];
   filteredLabos: Laboratoire[] = [];
   selectedLabo: Laboratoire | null = null;
+selectedLocationName: string | null = null;
 
   userId!: number;
   isLoading = false;
@@ -49,7 +61,7 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
   pcs: PC[] = [];
   selectedPCId: number | null = null;
   isLoadingPCs = false;
-  pcLoadingError: string | null = null; // Pour capturer spécifiquement les erreurs de chargement des PCs
+  pcLoadingError: string | null = null;
 
   selectedProblemTypeKey: 'Matériel' | 'Logiciel' | null = null;
   backendProblemType: 'materiel' | 'logiciel' | null = null;
@@ -76,7 +88,6 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     'Fenêtre/Porte': 'autre',
     'Autre Problème Divers': 'autre'
   };
-
 
   selectedProblem: string | null = null;
   showAddProblemInput = false;
@@ -159,7 +170,7 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
   }
 
   fetchUserData(userId: number): void {
-    this.authService.getUserById(userId).subscribe({
+    const userSub = this.authService.getUserById(userId).subscribe({
       next: (data: any) => {
         this.user = {
           id: userId,
@@ -179,6 +190,7 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
         }
       }
     });
+    this.subscriptions.push(userSub);
   }
 
   loadLaboratoires(): void {
@@ -186,7 +198,7 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     const laboSub = this.gestionService.getLaboratoires().subscribe({
       next: (data) => {
-        this.laboratoires = data;
+        this.laboratoires = Array.isArray(data) ? data : [];
         this.filteredLabos = [...this.laboratoires];
         this.isLoading = false;
       },
@@ -199,34 +211,27 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     this.subscriptions.push(laboSub);
   }
 
-  // Ajout des méthodes pour charger les salles et les bureaux
   loadSalles(): void {
-    this.isLoadingLocations = true;
     const sallesSub = this.gestionService.getSalles().subscribe({
       next: (data) => {
-        this.salles = data;
-        this.isLoadingLocations = false;
+        this.salles = Array.isArray(data) ? data : [];
       },
       error: (error) => {
         console.error('Erreur lors du chargement des salles', error);
         this.errorMessage = `Erreur: ${error.message || 'Impossible de charger les salles.'}`;
-        this.isLoadingLocations = false;
       }
     });
     this.subscriptions.push(sallesSub);
   }
 
   loadBureaux(): void {
-    this.isLoadingLocations = true;
     const bureauSub = this.gestionService.getBureaux().subscribe({
       next: (data) => {
-        this.bureaux = data;
-        this.isLoadingLocations = false;
+        this.bureaux = Array.isArray(data) ? data : [];
       },
       error: (error) => {
         console.error('Erreur lors du chargement des bureaux', error);
         this.errorMessage = `Erreur: ${error.message || 'Impossible de charger les bureaux.'}`;
-        this.isLoadingLocations = false;
       }
     });
     this.subscriptions.push(bureauSub);
@@ -246,23 +251,43 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     console.log(`Chargement des PCs pour le laboratoire ID: ${laboratoireId}`);
 
     const pcSub = this.gestionService.getPCsByLaboratoire(laboratoireId).subscribe({
-      next: (data: any) => {
-        console.log('Données des PCs reçues:', data);
-        // Assurer que data est traité comme un tableau
-        if (Array.isArray(data)) {
-          this.pcs = data;
-        } else if (data && typeof data === 'object') {
-          // Si c'est un objet avec des PCs à l'intérieur, essayez de l'extraire
-          // Adapter selon la structure exacte de votre API
-          this.pcs = Array.isArray(data.pcs) ? data.pcs : Object.values(data);
-        } else {
-          this.pcs = [];
-          this.pcLoadingError = 'Format de données incorrect retourné par le serveur';
+      next: (response: any) => {
+        console.log('Réponse complète de l\'API:', response);
+        
+        // Gérer différents formats de réponse de l'API
+        let pcsData: PC[] = [];
+        
+        if (response && response.pcs && Array.isArray(response.pcs)) {
+          // Format: { laboratoire: {...}, pcs: [...], total_pcs: number }
+          pcsData = response.pcs;
+        } else if (Array.isArray(response)) {
+          // Format: [...]
+          pcsData = response;
+        } else if (response && typeof response === 'object') {
+          // Essayer d'extraire les PCs de différentes manières
+          if (response.data && Array.isArray(response.data)) {
+            pcsData = response.data;
+          } else if (response.results && Array.isArray(response.results)) {
+            pcsData = response.results;
+          } else {
+            // Dernier recours : convertir l'objet en tableau de valeurs
+            pcsData = Object.values(response).filter((item: any) => 
+              item && typeof item === 'object' && item.id && item.poste
+            ) as PC[];
+          }
+        }
+
+        this.pcs = pcsData || [];
+        console.log('PCs traités:', this.pcs);
+
+        if (this.pcs.length === 0) {
+          this.pcLoadingError = 'Aucun PC trouvé pour ce laboratoire';
         }
       },
-      error: err => {
+      error: (err) => {
         console.error(`Erreur lors du chargement des PCs pour le labo ${laboratoireId}:`, err);
-        this.pcLoadingError = `Erreur: ${err.message || 'Impossible de charger les PCs.'}`;
+        this.pcLoadingError = `Erreur: ${err.error?.message || err.message || 'Impossible de charger les PCs.'}`;
+        this.pcs = [];
       },
       complete: () => {
         this.isLoadingPCs = false;
@@ -272,33 +297,49 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     this.subscriptions.push(pcSub);
   }
 
-  onLocationChange(locationType: 'Labo' | 'Salle' | 'Bureau'): void {
-    this.selectedLocation = locationType;
-    this.selectedLocationId = null;
-    this.pcs = [];
-    this.selectedPCId = null;
-    this.resetStep('location');
-    
-    // Réinitialiser la catégorie en fonction du type de lieu
-    this.selectedCategoryKey = null;
-    this.backendCategory = null;
-  }
-
-  onLocationSelect(locationId: any): void {
-    // Assurer que locationId est un nombre
-    this.selectedLocationId = typeof locationId === 'number' ? locationId : 
-                            (locationId ? +locationId : null);
-    
-    this.resetStep('category');
-
-    if (this.selectedLocation === 'Labo' && this.selectedLocationId !== null) {
-      this.loadPCs(this.selectedLocationId);
-    } else {
-      this.pcs = [];
-      this.selectedPCId = null;
-      this.isLoadingPCs = false;
+ onLocationChange(locationType: 'Labo' | 'Salle' | 'Bureau'): void {
+  this.selectedLocation = locationType;
+  this.selectedLocationId = null;
+  this.selectedLocationName = null; // Réinitialiser le nom
+  this.pcs = [];
+  this.selectedPCId = null;
+  this.resetStep('location');
+  
+  // Réinitialiser la catégorie en fonction du type de lieu
+  this.selectedCategoryKey = null;
+  this.backendCategory = null;
+}
+onLocationSelect(locationId: any): void {
+  // Assurer que locationId est un nombre
+  this.selectedLocationId = typeof locationId === 'number' ? locationId : 
+                          (locationId ? +locationId : null);
+  
+  // Récupérer le nom du lieu sélectionné
+  this.selectedLocationName = null;
+  if (this.selectedLocationId !== null) {
+    if (this.selectedLocation === 'Labo') {
+      const selectedLabo = this.laboratoires.find(labo => labo.id === this.selectedLocationId);
+      this.selectedLocationName = selectedLabo ? selectedLabo.nom : null;
+    } else if (this.selectedLocation === 'Salle') {
+      const selectedSalle = this.salles.find(salle => salle.id === this.selectedLocationId);
+      this.selectedLocationName = selectedSalle ? selectedSalle.nom : null;
+    } else if (this.selectedLocation === 'Bureau') {
+      const selectedBureau = this.bureaux.find(bureau => bureau.id === this.selectedLocationId);
+      this.selectedLocationName = selectedBureau ? selectedBureau.nom : null;
     }
   }
+  
+  this.resetStep('category');
+
+  if (this.selectedLocation === 'Labo' && this.selectedLocationId !== null) {
+    this.loadPCs(this.selectedLocationId);
+  } else {
+    this.pcs = [];
+    this.selectedPCId = null;
+    this.isLoadingPCs = false;
+  }
+}
+
 
   onCategoryChange(categoryKey: 'PC' | 'Electrique' | 'Divers'): void {
     this.selectedCategoryKey = categoryKey;
@@ -368,29 +409,37 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
 
   resetStep(level: string): void {
     if (level === 'location') {
-      this.selectedCategoryKey = null; this.backendCategory = null;
-      this.selectedPCId = null; this.pcs = [];
+      this.selectedCategoryKey = null; 
+      this.backendCategory = null;
+      this.selectedPCId = null; 
+      this.pcs = [];
     }
     if (level === 'location' || level === 'category') {
-      this.selectedProblemTypeKey = null; this.backendProblemType = null;
+      this.selectedProblemTypeKey = null; 
+      this.backendProblemType = null;
       if (level === 'category') this.selectedPCId = null;
     }
     if (level === 'location' || level === 'category' || level === 'categorySpecific') {
       this.selectedProblem = null;
       this.selectedClimatiseurOption = null;
       this.selectedProjectorState = null;
-      this.showAddProblemInput = false; this.newProblem = '';
+      this.showAddProblemInput = false; 
+      this.newProblem = '';
       if (this.backendCategory !== 'pc') {
         this.selectedPCId = null;
-        this.selectedProblemTypeKey = null; this.backendProblemType = null;
+        this.selectedProblemTypeKey = null; 
+        this.backendProblemType = null;
       }
     } else if (level === 'pcSpecific') {
-      this.selectedProblemTypeKey = null; this.backendProblemType = null;
+      this.selectedProblemTypeKey = null; 
+      this.backendProblemType = null;
       this.selectedProblem = null;
-      this.showAddProblemInput = false; this.newProblem = '';
+      this.showAddProblemInput = false; 
+      this.newProblem = '';
     } else if (level === 'problemTypeSpecific') {
       this.selectedProblem = null;
-      this.showAddProblemInput = false; this.newProblem = '';
+      this.showAddProblemInput = false; 
+      this.newProblem = '';
     } else if (level === 'problemSpecific') {
       this.selectedClimatiseurOption = null;
       this.selectedProjectorState = null;
@@ -427,19 +476,23 @@ export class CreateReclamationComponent implements OnInit, OnDestroy {
     let generalDescription = this.problemDescription.trim();
     let specificProblemDescription = this.selectedProblem!;
 
-const payload: CreateReclamationRequest = {
-  lieu: this.selectedLocation!.toLowerCase() as 'labo' | 'salle' | 'bureau',
-  category: this.backendCategory!,
-  laboratoire: (this.selectedLocation === 'Labo' && this.selectedLocationId) ? this.selectedLocationId : null,
-  salle: (this.selectedLocation === 'Salle' && this.selectedLocationId) ? this.selectedLocationId : null,
-  bureau: (this.selectedLocation === 'Bureau' && this.selectedLocationId) ? this.selectedLocationId : null,
-  equipement: (this.backendCategory === 'pc' && this.selectedPCId) ? this.selectedPCId : null,
-  description_generale: '',
-  status: 'en_attente',
-  pc_details: undefined,
-  electrique_details: undefined,
-  divers_details: undefined,
-};
+    // Construire le payload selon l'API backend
+    const payload: CreateReclamationRequest = {
+      lieu: this.selectedLocation!.toLowerCase() as 'labo' | 'salle' | 'bureau',
+    lieuExacte: this.selectedLocationName || this.selectedLocation!.toLowerCase() as 'labo' | 'salle' | 'bureau',
+      category: this.backendCategory!,
+      laboratoire: (this.selectedLocation === 'Labo' && this.selectedLocationId) ? this.selectedLocationId : null,
+      salle: (this.selectedLocation === 'Salle' && this.selectedLocationId) ? this.selectedLocationId : null,
+      bureau: (this.selectedLocation === 'Bureau' && this.selectedLocationId) ? this.selectedLocationId : null,
+      equipement: null, // Remplacer par pc si nécessaire
+      description_generale: '',
+      status: 'en_attente',
+      pc_details: undefined,
+      electrique_details: undefined,
+      divers_details: undefined,
+    };
+
+    // Traitement spécifique selon la catégorie
     if (payload.category === 'pc' && this.backendProblemType && this.selectedProblem) {
       payload.pc_details = {
         type_probleme: this.backendProblemType,
@@ -487,11 +540,13 @@ const payload: CreateReclamationRequest = {
       error: (error) => {
         console.error('Error creating reclamation:', error);
         let detailedErrorMessage = `Erreur ${error.status || ''}: `;
+        
         if (error.error && typeof error.error === 'object') {
           const errorFields = Object.keys(error.error);
           if (errorFields.length > 0) {
             errorFields.forEach(key => {
-              const fieldErrors = Array.isArray(error.error[key]) ? error.error[key].join(', ') : String(error.error[key]);
+              const fieldErrors = Array.isArray(error.error[key]) ? 
+                error.error[key].join(', ') : String(error.error[key]);
               detailedErrorMessage += `${key}: ${fieldErrors}. `;
             });
           } else {
@@ -502,6 +557,7 @@ const payload: CreateReclamationRequest = {
         } else {
           detailedErrorMessage += 'Vérifiez la console pour plus de détails.';
         }
+        
         this.submitError = detailedErrorMessage.trim();
         this.submitSuccess = false;
         this.isSubmitting = false;

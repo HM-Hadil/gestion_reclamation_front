@@ -14,11 +14,12 @@
  
 
   <!-- Sidebar -->
-  <aside 
-    class="w-64 bg-black bg-opacity-60 shadow-2xl h-screen p-5 fixed  left-0 flex flex-col items-center"  style="margin-top: -4rem;"
-    [class.hidden]="!isSidebarVisible"  >
-
-    <div class="text-center ">
+      <aside 
+        id="sidebar"
+        class="w-64 bg-black bg-opacity-60 shadow-2xl h-screen fixed left-0 flex flex-col items-center transition-transform duration-300"
+    >
+        <!-- Section Profil (Sticky) -->
+         <div class="text-center ">
 
       <img [src]="profilePicture || 'assets/default-avatar.png'" 
            alt="Image de l'utilisateur"
@@ -31,62 +32,70 @@
       
   </div>
 
-      <nav class=" w-full bg-white bg-opacity-80 shadow-sm rounded-lg p-3 transition-all duration-300 hover:bg-gray-100">
+        <!-- Contenu Scrollable -->
+        <div class="scrollable-content w-full">
+            <nav class="w-full bg-white bg-opacity-80 shadow-sm rounded-lg p-3 transition-all duration-300 hover:bg-gray-100">
+                <!-- Bouton Voir Profil -->
+                <a
+                    class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-blue-600 transition block text-center"
+                    href="/profil">                            <span class="mr-3 text-lg">⚙️</span>
 
-        <ul class="space-y-2">
-          <!-- Bouton pour afficher les réclamations soumises par l'enseignant -->
-          <a
-  class="bg-blue-500 text-white w-full py-2 rounded-md mt-4 hover:bg-blue-600 transition"
-  href="/profil">
-  Voir profil
-        </a>
+                    Voir profil
+                </a>
 
-          <li>
-            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
-              <span class="mr-3 text-lg">📝</span>
-              <a href="enseignant/create-reclamation" class="font-medium text-sm hover:scale-110" >Créer  Réclamation </a>
-            </button>
-          </li>
-          <li>
-            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
-              <span class="mr-3 text-lg">📝</span>
-              <a href="enseignant/my-reclamations" class="font-medium text-sm hover:scale-110" >Mes Réclamations </a>
-            </button>
-          </li>
-            <li>
-            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
-              <span class="mr-3 text-lg">📝</span>
-              <a href="enseignant/other-interventions" class="font-medium text-sm hover:scale-110" >Autres Interventions</a>
-            </button>
-          </li>
-          <!-- Bouton pour afficher les réclamations terminées de tous les enseignants -->
-          <li>
-            <button class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
-              <span class="mr-3 text-lg">📑</span>
-              <span class="font-medium text-sm hover:scale-110" ><a href="enseignant/my-interventions">Mes Interventions</a></span>
-            </button>
-          </li>
-          
-          <!-- Nouveau bouton Fiches Techniques -->
-          <li>
-            <a href="enseignant/fiche-technique" class="w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200 hover:scale-110">
-              <span class="mr-3 text-lg">🖥️</span>
-              <span class="font-medium text-sm hover:scale-110" >Fiches Techniques Labos</span>
-            </a>
-          </li>
+                <ul class="space-y-2 mt-4">
+                    <!-- Créer Réclamation -->
+                    <li>
+                        <button class="nav-item w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200">
+                            <span class="mr-3 text-lg">📝</span>
+                            <a href="enseignant/create-reclamation" class="font-medium text-sm">Créer Réclamation</a>
+                        </button>
+                    </li>
 
+                    <!-- Mes Réclamations -->
+                    <li>
+                        <button class="nav-item w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200">
+                            <span class="mr-3 text-lg">📝</span>
+                            <a href="enseignant/my-reclamations" class="font-medium text-sm">Mes Réclamations</a>
+                        </button>
+                    </li>
 
+                    <!-- Autres Interventions -->
+                    <li>
+                        <button class="nav-item w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200">
+                            <span class="mr-3 text-lg">📝</span>
+                            <a href="enseignant/other-interventions" class="font-medium text-sm">Autres Interventions</a>
+                        </button>
+                    </li>
 
+                    <!-- Mes Interventions -->
+                    <li>
+                        <button class="nav-item w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200">
+                            <span class="mr-3 text-lg">📑</span>
+                            <a href="enseignant/my-interventions" class="font-medium text-sm">Mes Interventions</a>
+                        </button>
+                    </li>
 
+                    <!-- Fiches Techniques -->
+                    <li>
+                        <a href="enseignant/fiche-technique" class="nav-item w-full flex items-center p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-all duration-200">
+                            <span class="mr-3 text-lg">🖥️</span>
+                            <span class="font-medium text-sm">Fiches Techniques Labos</span>
+                        </a>
+                    </li>
 
-        </ul>
-        <button (click)="logout()"
-class="bg-red-400 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition-all duration-150"
-    >
-       Déconnexion
-      </button>
+                    <!-- Éléments supplémentaires pour démontrer le scroll -->
+                    <li>
+                         <button 
+                    onclick="logout()"
+                    class="bg-red-400 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transition-all duration-150">
+                    Déconnexion
+                </button>
 
-      </nav>
+              </li>
+            </ul>
+            </nav>
+        </div>
     </aside>
   </div>
 
@@ -106,26 +115,6 @@ class="bg-red-400 text-white w-full py-2 rounded-md mt-4 hover:bg-red-600 transi
 
 <app-footer></app-footer>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!--*********************************************************************************************************************************************************-->
 
 
 

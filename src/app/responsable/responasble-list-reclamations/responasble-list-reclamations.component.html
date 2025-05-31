@@ -1,44 +1,10 @@
 <div class="p-6 bg-gray-100 min-h-screen">
   <div class="bg-white shadow-md rounded-lg pt-4">
     <div class="p-5 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
-      <input type="text" placeholder="🔍 Rechercher une réclamation par ID, description, lieu ou catégorie..."
+      <input type="text" placeholder="🔍 Rechercher une réclamation par ID, description, lieu, utilisateur ou catégorie..."
         [(ngModel)]="searchTerm" (input)="onSearchChange()"
         class="border p-3 rounded-lg w-full md:w-2/3 outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200">
 
-      <div class="relative w-full md:w-1/3">
-        <button (click)="toggleFilterDropdown()"
-          class="bg-white text-gray-700 px-4 py-2 rounded-full w-full flex items-center justify-between shadow-sm border border-gray-300 hover:bg-gray-50 transition-colors">
-          <span class="font-medium">Filtrer</span>
-          <svg [class.rotate-180]="isFilterDropdownVisible" class="w-4 h-4 transition-transform duration-200"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        <div *ngIf="isFilterDropdownVisible"
-          class="absolute right-0 mt-2 w-full md:w-64 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200 animate-fade-in-down">
-          <a (click)="filterByDate()"
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150">
-            Trier par Date (Récent)
-          </a>
-          <div class="border-t border-gray-100 my-1"></div>
-          <p class="px-4 py-2 text-xs text-gray-500 font-semibold uppercase">Filtrer par Lieu</p>
-          <a (click)="filterByLieu('labo')"
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150">
-            Laboratoire
-          </a>
-          <a (click)="filterByLieu('salle')"
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150">
-            Salle
-          </a>
-          <a (click)="filterByLieu('bureau')"
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors duration-150">
-            Bureau
-          </a>
-        
-      
-        </div>
-      </div>
     </div>
 
     <div class="px-5 pb-5">
@@ -65,7 +31,6 @@
       </div>
     </div>
 
-
     <div class="overflow-x-auto rounded-b-lg">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -77,9 +42,11 @@
               Description
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Enseignant 
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Lieu
             </th>
-           
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Statut
             </th>
@@ -102,9 +69,14 @@
               {{ getReclamationTitle(reclamation) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-              {{reclamation.lieu || 'N/A'}}
+              <div class="flex flex-col">
+                <span class="font-medium">{{ getUserName(reclamation.user) }}</span>
+              
+              </div>
             </td>
-        
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+              {{reclamation.lieuExacte}}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span [ngClass]="getStatutClass(reclamation.status)"
                 class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
@@ -131,9 +103,9 @@
   </div>
 </div>
 
+<!-- Modal -->
 <div *ngIf="modalVisible"
   class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-amber-100">
     <div class="bg-gradient-to-r from-amber-600 to-amber-500 p-5 flex justify-between items-center">
       <div class="flex items-center space-x-3">
@@ -146,7 +118,7 @@
         </div>
         <div>
           <h3 class="text-xl font-bold text-white">Réclamation #{{modalData?.id}}</h3>
-          <p class="text-amber-100 text-sm">Enseignant → Responsable • {{modalData?.date_creation | date:'mediumDate'}}</p>
+          <p class="text-amber-100 text-sm">{{getUserName(modalData?.user!)}} → Responsable • {{modalData?.date_creation | date:'mediumDate'}}</p>
         </div>
       </div>
       <button (click)="closeModal()" class="text-white/80 hover:text-white">
@@ -168,22 +140,9 @@
               </svg>
             </div>
             <div>
-              <h4 class="text-xs font-medium text-amber-600">ENSEIGNANT</h4>
-              <p class="font-medium">{{modalData?.user}} </p>
+              <h4 class="text-xs font-medium text-amber-600">Enseignant</h4>
+              <p class="font-medium">{{ getUserName(modalData?.user!) }}</p>
             </div>
-          </div>
-        </div>
-
-        <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
-          <div class="flex items-center space-x-3">
-            <div class="bg-amber-100 text-amber-800 p-2 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </div>
-         
           </div>
         </div>
 
@@ -197,8 +156,25 @@
               </svg>
             </div>
             <div>
-              <h4 class="text-xs font-medium text-amber-600">Lieu</h4>
-              <p class="font-medium">{{modalData?.lieu || 'Non spécifié'}}</p>
+              <h4 class="text-xs font-medium text-amber-600">LIEU</h4>
+              <p class="font-medium">{{modalData?.lieuExacte || 'Non spécifié'}}</p>
+              <p *ngIf="getPcPosteName(modalData!)" class="text-xs text-blue-600 mt-1">PC: {{ getPcPosteName(modalData!) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-xl p-4 border border-amber-100">
+          <div class="flex items-center space-x-3">
+            <div class="bg-amber-100 text-amber-800 p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-medium text-amber-600">CATÉGORIE</h4>
+              <p class="font-medium capitalize">{{modalData?.category || 'Non spécifié'}}</p>
             </div>
           </div>
         </div>
@@ -217,8 +193,6 @@
           <p class="whitespace-pre-line text-gray-700">{{getReclamationFullDescription(modalData)}}</p>
         </div>
       </div>
-
-    
 
       <div class="flex justify-end space-x-3 pt-4">
         <button (click)="closeModal()"
